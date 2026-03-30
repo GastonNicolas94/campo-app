@@ -34,6 +34,6 @@ export const api = {
     login: (body: unknown) => request<AuthResult>('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
     refresh: (refreshToken: string) =>
       request<{ accessToken: string }>('/auth/refresh', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
-    me: () => request<MeResult>('/auth/me'),
+    me: () => request<MeResult>('/me'),
   },
 }
