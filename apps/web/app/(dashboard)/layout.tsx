@@ -6,6 +6,8 @@ import { useEffect } from 'react'
 const navItems = [
   { href: '/dashboard', label: 'Inicio' },
   { href: '/dashboard/fields', label: 'Establecimientos' },
+  { href: '/dashboard/lots', label: 'Lotes' },
+  { href: '/dashboard/campaigns', label: 'Campañas' },
   { href: '/dashboard/activities', label: 'Actividades' },
 ]
 
@@ -35,7 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             key={item.href}
             href={item.href}
             className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-              pathname === item.href
+              pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
                 ? 'bg-zinc-800 text-white font-medium'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
             }`}
@@ -64,7 +66,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               key={item.href}
               href={item.href}
               className={`flex-1 py-3 text-xs text-center transition-colors ${
-                pathname === item.href ? 'text-green-400' : 'text-zinc-500'
+                pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)) ? 'text-green-400' : 'text-zinc-500'
               }`}
             >
               {item.label}
