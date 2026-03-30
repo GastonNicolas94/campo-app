@@ -52,7 +52,7 @@ export const api = {
     delete: (id: string) => request<void>(`/fields/${id}`, { method: 'DELETE' }),
     lots: (fieldId: string) => request<Lot[]>(`/fields/${fieldId}/lots`),
     createLot: (fieldId: string, body: { name: string; hectares?: string }) =>
-      request<Lot>(`/fields/${fieldId}/lots`, { method: 'POST', body: JSON.stringify(body) }),
+      request<Lot>(`/fields/${fieldId}/lots`, { method: 'POST', body: JSON.stringify({ ...body, hectares: body.hectares ? Number(body.hectares) : undefined }) }),
   },
   lots: {
     getById: (id: string) => request<Lot>(`/lots/${id}`),
