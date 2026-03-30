@@ -1,27 +1,43 @@
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import * as schema from '@campo-app/db'
-import { v4 as uuidv4 } from 'uuid'
 
 export async function createTestDb() {
   const client = new PGlite()
   const db = drizzle(client, { schema })
 
-  // Create tables directly from schema (no migration files needed)
+  // Create tables directly (no migration files needed)
+  // pglite has gen_random_uuid built-in
   try {
-    await client.exec("CREATE TYPE role AS ENUM ('owner', 'manager', 'operator', 'accountant')")
+    await client.exec(`CREATE TYPE role AS ENUM ('owner', 'manager', 'operator', 'accountant')`)
   } catch {
     // Type may already exist
   }
 
   try {
-    await client.exec("CREATE TABLE tenants (id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at TEXT)")
+    await client.exec(`
+      CREATE TABLE tenants (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
   } catch {
     // Table may already exist
   }
 
   try {
-    await client.exec("CREATE TABLE users (id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, email TEXT UNIQUE, password_hash TEXT NOT NULL, phone TEXT, role TEXT, created_at TEXT)")
+    await client.exec(`
+      CREATE TABLE users (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        email TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        phone TEXT,
+        role role NOT NULL DEFAULT 'owner',
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
   } catch {
     // Table may already exist
   }

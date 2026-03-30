@@ -2,7 +2,6 @@ import { eq } from 'drizzle-orm'
 import { tenants, users } from '@campo-app/db'
 import type { Db } from '../../shared/db'
 import type { Role } from '@campo-app/types'
-import { randomUUID } from 'crypto'
 
 interface CreateTenantInput {
   name: string
@@ -20,24 +19,12 @@ export class AuthRepository {
   constructor(private db: Db) {}
 
   async createTenant(input: CreateTenantInput) {
-    const [tenant] = await this.db
-      .insert(tenants)
-      .values({
-        id: randomUUID(),
-        ...input,
-      })
-      .returning()
+    const [tenant] = await this.db.insert(tenants).values(input).returning()
     return tenant
   }
 
   async createUser(input: CreateUserInput) {
-    const [user] = await this.db
-      .insert(users)
-      .values({
-        id: randomUUID(),
-        ...input,
-      })
-      .returning()
+    const [user] = await this.db.insert(users).values(input).returning()
     return user
   }
 
