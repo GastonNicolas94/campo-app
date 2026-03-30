@@ -5,6 +5,7 @@ import { createAuthRouter } from './modules/auth/auth.router'
 import { createFieldsRouter } from './modules/fields/fields.router'
 import { createLotsRouter } from './modules/lots/lots.router'
 import { createCampaignsRouter } from './modules/campaigns/campaigns.router'
+import { createActivitiesRouter } from './modules/activities/activities.router'
 import { AuthRepository } from './modules/auth/auth.repository'
 import { verifyAuth } from './shared/middleware/auth.middleware'
 import { db } from './shared/db'
@@ -33,6 +34,7 @@ export function createApp() {
   app.route('/fields', createFieldsRouter())
   app.route('/', createLotsRouter())
   app.route('/', createCampaignsRouter())
+  app.route('/activities', createActivitiesRouter())
 
   return app
 }

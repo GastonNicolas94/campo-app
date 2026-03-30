@@ -105,6 +105,29 @@ export async function createTestDb() {
     `)
   } catch {}
 
+  try {
+    await client.exec(`CREATE TYPE activity_status AS ENUM ('pending', 'done', 'skipped')`)
+  } catch {}
+
+  try {
+    await client.exec(`
+      CREATE TABLE activities (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        lot_id UUID REFERENCES lots(id) ON DELETE CASCADE,
+        campaign_id UUID REFERENCES campaigns(id) ON DELETE SET NULL,
+        assigned_to UUID REFERENCES users(id) ON DELETE SET NULL,
+        created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        description TEXT,
+        due_date DATE,
+        status activity_status NOT NULL DEFAULT 'pending',
+        completion_notes TEXT,
+        completed_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+      )
+    `)
+  } catch {}
+
   return db
 }
 
