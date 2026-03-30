@@ -43,13 +43,5 @@ export function createAuthRouter() {
     }
   })
 
-  router.get('/me', verifyAuth, async (c) => {
-    const { sub: userId } = c.get('user')
-    const user = await repo.findById(userId)
-    if (!user) return c.json({ error: 'Usuario no encontrado' }, 404)
-    const { passwordHash: _omit, ...safeUser } = user
-    return c.json({ data: safeUser })
-  })
-
   return router
 }
