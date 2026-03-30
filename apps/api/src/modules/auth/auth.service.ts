@@ -21,7 +21,7 @@ export class AuthService {
       role: 'owner',
     })
 
-    const jwtPayload = { sub: user.id, tenantId: tenant.id, role: user.role as const }
+    const jwtPayload = { sub: user.id, tenantId: tenant.id, role: user.role }
     const [accessToken, refreshToken] = await Promise.all([
       signAccessToken(jwtPayload),
       signRefreshToken(jwtPayload),
@@ -41,7 +41,7 @@ export class AuthService {
     const valid = await bcrypt.compare(input.password, user.passwordHash)
     if (!valid) throw new Error('Credenciales inválidas')
 
-    const jwtPayload = { sub: user.id, tenantId: user.tenantId, role: user.role as const }
+    const jwtPayload = { sub: user.id, tenantId: user.tenantId, role: user.role }
     const [accessToken, refreshToken] = await Promise.all([
       signAccessToken(jwtPayload),
       signRefreshToken(jwtPayload),
@@ -59,7 +59,7 @@ export class AuthService {
     const user = await this.repo.findById(payload.sub)
     if (!user) throw new Error('Usuario no encontrado')
 
-    const jwtPayload = { sub: user.id, tenantId: user.tenantId, role: user.role as const }
+    const jwtPayload = { sub: user.id, tenantId: user.tenantId, role: user.role }
     const accessToken = await signAccessToken(jwtPayload)
     return { accessToken }
   }

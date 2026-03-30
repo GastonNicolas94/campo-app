@@ -42,6 +42,69 @@ export async function createTestDb() {
     // Table may already exist
   }
 
+  try {
+    await client.exec(`CREATE TYPE campaign_status AS ENUM ('active', 'closed')`)
+  } catch {}
+
+  try {
+    await client.exec(`CREATE TYPE yield_unit AS ENUM ('qq_ha', 'tn_ha')`)
+  } catch {}
+
+  try {
+    await client.exec(`
+      CREATE TABLE fields (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        location TEXT,
+        total_hectares NUMERIC(10,2),
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+      )
+    `)
+  } catch {}
+
+  try {
+    await client.exec(`
+      CREATE TABLE lots (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        field_id UUID NOT NULL REFERENCES fields(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        hectares NUMERIC(10,2),
+        geometry JSONB,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+      )
+    `)
+  } catch {}
+
+  try {
+    await client.exec(`
+      CREATE TABLE campaigns (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        lot_id UUID NOT NULL REFERENCES lots(id) ON DELETE CASCADE,
+        crop TEXT NOT NULL,
+        variety TEXT,
+        sowing_date DATE NOT NULL,
+        harvest_date DATE,
+        status campaign_status NOT NULL DEFAULT 'active',
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+      )
+    `)
+  } catch {}
+
+  try {
+    await client.exec(`
+      CREATE TABLE campaign_results (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+        yield_amount NUMERIC(10,2),
+        yield_unit yield_unit,
+        total_revenue NUMERIC(12,2),
+        notes TEXT,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+      )
+    `)
+  } catch {}
+
   return db
 }
 

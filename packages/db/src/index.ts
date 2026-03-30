@@ -1,2 +1,5 @@
 export * from './schema/tenants'
 export * from './schema/users'
+export * from './schema/fields'
+export * from './schema/lots'
+export * from './schema/campaigns'
