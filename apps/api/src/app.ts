@@ -2,6 +2,9 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { createAuthRouter } from './modules/auth/auth.router'
+import { createFieldsRouter } from './modules/fields/fields.router'
+import { createLotsRouter } from './modules/lots/lots.router'
+import { createCampaignsRouter } from './modules/campaigns/campaigns.router'
 import { AuthRepository } from './modules/auth/auth.repository'
 import { verifyAuth } from './shared/middleware/auth.middleware'
 import { db } from './shared/db'
@@ -26,6 +29,10 @@ export function createApp() {
     const { passwordHash: _omit, ...safeUser } = user
     return c.json({ data: safeUser })
   })
+
+  app.route('/fields', createFieldsRouter())
+  app.route('/', createLotsRouter())
+  app.route('/', createCampaignsRouter())
 
   return app
 }
