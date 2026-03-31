@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { api, type Lot, type Campaign } from '@/lib/api'
 
+const inputClass = "w-full bg-surface border border-rim rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-subtle focus:outline-none focus:border-brand transition-colors"
+
 export default function LotDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
@@ -78,29 +80,29 @@ export default function LotDetailPage() {
     }
   }
 
-  if (loading) return <p className="text-zinc-400 text-center mt-16">Cargando...</p>
+  if (loading) return <p className="text-muted text-center mt-16">Cargando...</p>
   if (!lot) return null
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="text-zinc-500 hover:text-zinc-300 text-sm">←</button>
+        <button onClick={() => router.back()} className="text-muted hover:text-ink text-sm transition-colors">←</button>
         <div>
-          <h1 className="text-xl font-semibold">{lot.name}</h1>
-          {lot.hectares && <p className="text-sm text-zinc-400">{lot.hectares} ha</p>}
+          <h1 className="font-display text-ink font-bold text-2xl">{lot.name}</h1>
+          {lot.hectares && <p className="text-sm text-muted mt-0.5">{lot.hectares} ha</p>}
         </div>
       </div>
 
       <div className="flex items-center justify-between">
-        <h2 className="font-medium text-zinc-300">Campañas ({campaigns.length})</h2>
+        <h2 className="font-semibold text-ink">Campañas ({campaigns.length})</h2>
         <div className="flex gap-2">
           <button onClick={handleExport} disabled={exporting}
-            className="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-white text-sm px-3 py-1.5 rounded-lg"
+            className="bg-card hover:bg-rim-subtle disabled:opacity-50 text-muted hover:text-ink border border-rim text-sm px-3 py-2 rounded-xl transition-colors"
           >
             {exporting ? '...' : '↓ Excel'}
           </button>
           <button onClick={() => setShowForm(!showForm)}
-            className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm px-3 py-1.5 rounded-lg"
+            className="bg-brand hover:bg-brand-hover text-white text-sm px-4 py-2.5 rounded-xl transition-colors font-medium"
           >
             + Campaña
           </button>
@@ -108,31 +110,28 @@ export default function LotDetailPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreateCampaign} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
+        <form onSubmit={handleCreateCampaign} className="bg-card border border-rim rounded-2xl p-5 space-y-3 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
           <input value={crop} onChange={e => setCrop(e.target.value)}
-            placeholder="Cultivo (ej: Soja, Maíz) *" required
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
+            placeholder="Cultivo (ej: Soja, Maíz) *" required className={inputClass}
           />
           <input value={variety} onChange={e => setVariety(e.target.value)}
-            placeholder="Variedad (opcional)"
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
+            placeholder="Variedad (opcional)" className={inputClass}
           />
           <div>
-            <label className="text-xs text-zinc-400 block mb-1">Fecha de siembra *</label>
+            <label className="text-xs text-muted block mb-1">Fecha de siembra *</label>
             <input value={sowingDate} onChange={e => setSowingDate(e.target.value)}
-              type="date" required
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
+              type="date" required className={inputClass}
             />
           </div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && <p className="text-danger text-sm">{error}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={saving}
-              className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg"
+              className="bg-brand hover:bg-brand-hover disabled:opacity-50 text-white text-sm px-4 py-2.5 rounded-xl transition-colors"
             >
               {saving ? 'Guardando...' : 'Guardar'}
             </button>
             <button type="button" onClick={() => setShowForm(false)}
-              className="text-zinc-400 hover:text-zinc-200 text-sm px-4 py-2"
+              className="text-muted hover:text-ink text-sm px-4 py-2.5"
             >
               Cancelar
             </button>
@@ -141,29 +140,31 @@ export default function LotDetailPage() {
       )}
 
       {campaigns.length === 0 ? (
-        <p className="text-zinc-500 text-sm text-center mt-8">No hay campañas. Creá una.</p>
+        <p className="text-subtle text-sm text-center mt-8">No hay campañas. Creá una.</p>
       ) : (
         <ul className="space-y-2">
           {campaigns.map(c => (
-            <li key={c.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <li key={c.id} className="bg-card border border-rim rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
               <div className="flex items-center justify-between">
-                <p className="font-medium">{c.crop}{c.variety ? ` — ${c.variety}` : ''}</p>
+                <p className="font-semibold text-ink">{c.crop}{c.variety ? ` — ${c.variety}` : ''}</p>
                 <div className="flex items-center gap-2">
                   {c.status === 'active' && (
                     <button
                       onClick={() => { setClosingId(c.id); setCloseYield(''); setCloseNotes(''); setCloseError(null) }}
-                      className="text-xs px-2 py-0.5 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300"
+                      className="text-xs px-2.5 py-1 rounded-lg bg-rim-subtle hover:bg-rim text-muted transition-colors"
                     >
                       Cerrar
                     </button>
                   )}
-                  <span className={`text-xs px-2 py-0.5 rounded ${c.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-zinc-700 text-zinc-400'}`}>
+                  <span className={`text-xs px-2.5 py-1 rounded-lg font-medium ${
+                    c.status === 'active' ? 'bg-brand-light text-brand' : 'bg-rim-subtle text-muted'
+                  }`}>
                     {c.status === 'active' ? 'Activa' : 'Cerrada'}
                   </span>
                 </div>
               </div>
-              <p className="text-sm text-zinc-400 mt-1">Siembra: {c.sowingDate}</p>
-              {c.harvestDate && <p className="text-sm text-zinc-400">Cosecha: {c.harvestDate}</p>}
+              <p className="text-sm text-muted mt-1">Siembra: {c.sowingDate}</p>
+              {c.harvestDate && <p className="text-sm text-muted">Cosecha: {c.harvestDate}</p>}
             </li>
           ))}
         </ul>
@@ -171,45 +172,45 @@ export default function LotDetailPage() {
 
       {/* Modal cerrar campaña */}
       {closingId && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <form onSubmit={handleCloseCampaign} className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-sm space-y-4">
-            <h2 className="text-lg font-semibold">Cerrar campaña</h2>
+        <div className="fixed inset-0 bg-ink/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <form onSubmit={handleCloseCampaign} className="bg-card border border-rim rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+            <h2 className="font-display text-ink font-bold text-lg">Cerrar campaña</h2>
             <div>
-              <label className="text-xs text-zinc-400 block mb-1">Rendimiento *</label>
+              <label className="text-xs text-muted block mb-1">Rendimiento *</label>
               <input
                 type="number" step="0.01" min="0" required
                 value={closeYield} onChange={e => setCloseYield(e.target.value)}
                 placeholder="ej: 35"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
+                className={inputClass}
               />
             </div>
             <div>
-              <label className="text-xs text-zinc-400 block mb-1">Unidad *</label>
+              <label className="text-xs text-muted block mb-1">Unidad *</label>
               <select
                 value={closeUnit} onChange={e => setCloseUnit(e.target.value as 'qq_ha' | 'tn_ha')}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
+                className={inputClass}
               >
                 <option value="qq_ha">qq/ha</option>
                 <option value="tn_ha">tn/ha</option>
               </select>
             </div>
             <div>
-              <label className="text-xs text-zinc-400 block mb-1">Notas (opcional)</label>
+              <label className="text-xs text-muted block mb-1">Notas (opcional)</label>
               <input
                 value={closeNotes} onChange={e => setCloseNotes(e.target.value)}
                 placeholder="Observaciones..."
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
+                className={inputClass}
               />
             </div>
-            {closeError && <p className="text-red-400 text-sm">{closeError}</p>}
+            {closeError && <p className="text-danger text-sm">{closeError}</p>}
             <div className="flex gap-2 pt-1">
               <button type="submit" disabled={closeSaving}
-                className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg flex-1"
+                className="bg-brand hover:bg-brand-hover disabled:opacity-50 text-white text-sm px-4 py-2.5 rounded-xl flex-1 transition-colors"
               >
                 {closeSaving ? 'Cerrando...' : 'Confirmar cierre'}
               </button>
               <button type="button" onClick={() => setClosingId(null)}
-                className="text-zinc-400 hover:text-zinc-200 text-sm px-4 py-2"
+                className="text-muted hover:text-ink text-sm px-4 py-2.5"
               >
                 Cancelar
               </button>

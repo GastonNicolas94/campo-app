@@ -2,14 +2,15 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { LayoutDashboard, MapPin, Layers, Sprout, ListChecks, Package, LogOut, Menu, X } from 'lucide-react'
 
 const navItems = [
-  { href: '/dashboard', label: 'Inicio' },
-  { href: '/dashboard/fields', label: 'Establecimientos' },
-  { href: '/dashboard/lots', label: 'Lotes' },
-  { href: '/dashboard/campaigns', label: 'Campañas' },
-  { href: '/dashboard/activities', label: 'Actividades' },
-  { href: '/dashboard/stock', label: 'Stock' },
+  { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
+  { href: '/dashboard/fields', label: 'Establecimientos', icon: MapPin },
+  { href: '/dashboard/lots', label: 'Lotes', icon: Layers },
+  { href: '/dashboard/campaigns', label: 'Campañas', icon: Sprout },
+  { href: '/dashboard/activities', label: 'Actividades', icon: ListChecks },
+  { href: '/dashboard/stock', label: 'Stock', icon: Package },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -32,28 +33,46 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.replace('/login')
   }
 
+  function isActive(href: string) {
+    return href === '/dashboard'
+      ? pathname === href
+      : pathname.startsWith(href)
+  }
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 flex">
+    <div className="min-h-screen bg-surface text-ink flex">
       {/* Sidebar desktop */}
-      <aside className="hidden md:flex flex-col w-56 border-r border-zinc-800 p-4 gap-1">
-        <div className="mb-6 px-2">
-          <span className="text-green-400 font-bold text-lg">Campo App</span>
+      <aside className="hidden md:flex flex-col w-60 bg-card border-r border-rim sticky top-0 h-screen p-5 gap-0.5">
+        <div className="mb-8 px-2">
+          <span className="font-display text-brand font-bold text-xl tracking-tight">Campo App</span>
+          <p className="text-xs text-muted mt-0.5">Gestión agrícola</p>
         </div>
-        {navItems.map(item => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-              pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
-                ? 'bg-zinc-800 text-white font-medium'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
+
+        {navItems.map(item => {
+          const Icon = item.icon
+          const active = isActive(item.href)
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${
+                active
+                  ? 'bg-brand text-white font-medium'
+                  : 'text-muted hover:text-ink hover:bg-rim-subtle'
+              }`}
+            >
+              <Icon size={16} strokeWidth={active ? 2.5 : 1.75} />
+              {item.label}
+            </Link>
+          )
+        })}
+
         <div className="mt-auto">
-          <button onClick={logout} className="w-full px-3 py-2 rounded-lg text-sm text-zinc-500 hover:text-zinc-300 text-left">
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted hover:text-ink hover:bg-rim-subtle transition-colors"
+          >
+            <LogOut size={16} strokeWidth={1.75} />
             Cerrar sesión
           </button>
         </div>
@@ -61,39 +80,41 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header mobile */}
-        <header className="md:hidden border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
-          <span className="text-green-400 font-bold">Campo App</span>
+        <header className="md:hidden bg-card border-b border-rim px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+          <span className="font-display text-brand font-bold text-lg tracking-tight">Campo App</span>
           <button
             onClick={() => setMenuOpen(o => !o)}
-            className="flex flex-col gap-1.5 p-1"
+            className="p-2 rounded-xl text-muted hover:text-ink hover:bg-rim-subtle transition-colors"
             aria-label="Menú"
           >
-            <span className={`block w-6 h-0.5 bg-zinc-400 transition-transform ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-            <span className={`block w-6 h-0.5 bg-zinc-400 transition-opacity ${menuOpen ? 'opacity-0' : ''}`} />
-            <span className={`block w-6 h-0.5 bg-zinc-400 transition-transform ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </header>
 
         {/* Dropdown menu mobile */}
         {menuOpen && (
-          <div className="md:hidden bg-zinc-900 border-b border-zinc-800 flex flex-col">
-            {navItems.map(item => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-5 py-3.5 text-sm border-b border-zinc-800/50 transition-colors ${
-                  pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
-                    ? 'text-green-400 font-medium'
-                    : 'text-zinc-400'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <div className="md:hidden bg-card border-b border-rim flex flex-col shadow-sm">
+            {navItems.map(item => {
+              const Icon = item.icon
+              const active = isActive(item.href)
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-5 py-3.5 text-sm border-b border-rim-subtle transition-colors ${
+                    active ? 'text-brand font-medium bg-brand-light' : 'text-muted'
+                  }`}
+                >
+                  <Icon size={16} strokeWidth={active ? 2.5 : 1.75} />
+                  {item.label}
+                </Link>
+              )
+            })}
             <button
               onClick={logout}
-              className="px-5 py-3.5 text-sm text-zinc-500 text-left"
+              className="flex items-center gap-3 px-5 py-3.5 text-sm text-muted text-left"
             >
+              <LogOut size={16} strokeWidth={1.75} />
               Cerrar sesión
             </button>
           </div>

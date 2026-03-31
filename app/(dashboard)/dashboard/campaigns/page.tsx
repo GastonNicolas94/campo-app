@@ -26,24 +26,28 @@ export default function CampaignsPage() {
     load()
   }, [])
 
-  if (loading) return <p className="text-zinc-400 text-center mt-16">Cargando...</p>
+  if (loading) return <p className="text-muted text-center mt-16">Cargando...</p>
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Campañas</h1>
+      <h1 className="font-display text-ink font-bold text-2xl">Campañas</h1>
       {campaigns.length === 0 ? (
-        <p className="text-zinc-400 text-center mt-12">No hay campañas. Creá un lote primero.</p>
+        <p className="text-muted text-center mt-12">No hay campañas. Creá un lote primero.</p>
       ) : (
         <ul className="space-y-2">
           {campaigns.map(c => (
-            <li key={c.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <li key={c.id} className="bg-card border border-rim rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{c.crop}{c.variety ? ` — ${c.variety}` : ''}</p>
-                  <p className="text-sm text-zinc-400 mt-0.5">{c.lotName}</p>
-                  <p className="text-sm text-zinc-500 mt-0.5">Siembra: {c.sowingDate}</p>
+                  <p className="font-semibold text-ink">{c.crop}{c.variety ? ` — ${c.variety}` : ''}</p>
+                  <p className="text-sm text-muted mt-0.5">{c.lotName}</p>
+                  <p className="text-sm text-subtle mt-0.5">Siembra: {c.sowingDate}</p>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded ${c.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-zinc-700 text-zinc-400'}`}>
+                <span className={`text-xs px-2.5 py-1 rounded-lg font-medium ${
+                  c.status === 'active'
+                    ? 'bg-brand-light text-brand'
+                    : 'bg-rim-subtle text-muted'
+                }`}>
                   {c.status === 'active' ? 'Activa' : 'Cerrada'}
                 </span>
               </div>

@@ -25,23 +25,23 @@ export default function LotsPage() {
     load()
   }, [])
 
-  if (loading) return <p className="text-zinc-400 text-center mt-16">Cargando...</p>
+  if (loading) return <p className="text-muted text-center mt-16">Cargando...</p>
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Lotes</h1>
+      <h1 className="font-display text-ink font-bold text-2xl">Lotes</h1>
       {lots.length === 0 ? (
-        <p className="text-zinc-400 text-center mt-12">No hay lotes. Creá un establecimiento primero.</p>
+        <p className="text-muted text-center mt-12">No hay lotes. Creá un establecimiento primero.</p>
       ) : (
         <ul className="space-y-2">
           {lots.map(lot => (
             <li key={lot.id}>
               <Link href={`/dashboard/lots/${lot.id}`}
-                className="block bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-600 transition-colors"
+                className="block bg-card border border-rim hover:border-brand/30 hover:shadow-[0_4px_16px_rgba(14,98,81,0.08)] rounded-2xl p-4 transition-all"
               >
-                <p className="font-medium">{lot.name}</p>
-                <p className="text-sm text-zinc-400 mt-0.5">{lot.fieldName}</p>
-                {lot.hectares && <p className="text-sm text-zinc-500 mt-0.5">{lot.hectares} ha</p>}
+                <p className="font-semibold text-ink">{lot.name}</p>
+                <p className="text-sm text-muted mt-0.5">{lot.fieldName}</p>
+                {lot.hectares && <p className="text-sm text-subtle mt-0.5">{lot.hectares} ha</p>}
               </Link>
             </li>
           ))}

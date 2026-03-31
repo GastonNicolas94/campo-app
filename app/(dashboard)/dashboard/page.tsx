@@ -9,8 +9,16 @@ import {
 } from 'recharts'
 
 const STATUS_LABELS: Record<string, string> = { pending: 'Pendiente', done: 'Completada', skipped: 'Omitida' }
-const STATUS_COLORS: Record<string, string> = { pending: '#eab308', done: '#22c55e', skipped: '#71717a' }
-const CATEGORY_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#a78bfa', '#f97316', '#6b7280']
+const STATUS_COLORS: Record<string, string> = { pending: '#D4AC0D', done: '#0E6251', skipped: '#94A3B8' }
+const CATEGORY_COLORS = ['#0E6251', '#3b82f6', '#D4AC0D', '#8b5cf6', '#f97316', '#64748B']
+
+const TOOLTIP_STYLE = {
+  background: '#fff',
+  border: '1px solid #E5E7EB',
+  borderRadius: 10,
+  fontSize: 12,
+  color: '#1A1A1A',
+}
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -67,23 +75,23 @@ export default function DashboardPage() {
     }
   }
 
-  if (loading) return <p className="text-zinc-400 text-center mt-16">Cargando...</p>
+  if (loading) return <p className="text-muted text-center mt-16">Cargando...</p>
   if (!summary) return null
 
   const { kpis, activitiesByStatus, campaignsByCrop, stockByCategory, campaignYields } = summary
 
   const kpiCards = [
-    { label: 'Establecimientos', value: kpis.totalFields, color: 'text-blue-400', href: '/dashboard/fields' },
-    { label: 'Lotes', value: kpis.totalLots, color: 'text-indigo-400', href: '/dashboard/lots' },
-    { label: 'Campañas activas', value: kpis.activeCampaigns, color: 'text-green-400', href: '/dashboard/campaigns' },
-    { label: 'Actividades pendientes', value: kpis.pendingActivities, color: 'text-yellow-400', href: '/dashboard/activities' },
-    { label: 'Alertas stock', value: kpis.stockAlerts, color: kpis.stockAlerts > 0 ? 'text-red-400' : 'text-zinc-400', href: '/dashboard/stock' },
+    { label: 'Establecimientos', value: kpis.totalFields, href: '/dashboard/fields' },
+    { label: 'Lotes', value: kpis.totalLots, href: '/dashboard/lots' },
+    { label: 'Campañas activas', value: kpis.activeCampaigns, href: '/dashboard/campaigns' },
+    { label: 'Actividades pendientes', value: kpis.pendingActivities, href: '/dashboard/activities', warn: kpis.pendingActivities > 0 },
+    { label: 'Alertas stock', value: kpis.stockAlerts, href: '/dashboard/stock', alert: kpis.stockAlerts > 0 },
   ]
 
   const actChartData = activitiesByStatus.map(r => ({
     name: STATUS_LABELS[r.status] ?? r.status,
     value: r.count,
-    fill: STATUS_COLORS[r.status] ?? '#71717a',
+    fill: STATUS_COLORS[r.status] ?? '#94A3B8',
   }))
   const yieldData = campaignYields.map((y, i) => ({
     name: `${y.crop}${y.variety ? ` (${y.variety})` : ''} #${i + 1}`,
@@ -91,19 +99,22 @@ export default function DashboardPage() {
     unidad: y.yieldUnit,
   }))
 
+  const inputClass = "bg-white border border-rim rounded-xl px-3 py-2 text-sm text-ink focus:outline-none focus:border-brand transition-colors"
+  const cardClass = "bg-card border border-rim rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+
   return (
     <div className="space-y-6">
       {/* Header + Export */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Inicio</h1>
+        <h1 className="font-display text-ink font-bold text-2xl">Inicio</h1>
         <div className="flex gap-2">
           <button disabled={exporting} onClick={() => handleExport('excel')}
-            className="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-white text-sm px-3 py-1.5 rounded-lg"
+            className="bg-card hover:bg-rim-subtle disabled:opacity-50 text-muted hover:text-ink border border-rim text-sm px-3 py-2 rounded-xl transition-colors"
           >
             {exporting ? '...' : '↓ Excel'}
           </button>
           <button disabled={exporting} onClick={() => handleExport('pdf')}
-            className="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-white text-sm px-3 py-1.5 rounded-lg"
+            className="bg-card hover:bg-rim-subtle disabled:opacity-50 text-muted hover:text-ink border border-rim text-sm px-3 py-2 rounded-xl transition-colors"
           >
             {exporting ? '...' : '↓ PDF'}
           </button>
@@ -113,53 +124,51 @@ export default function DashboardPage() {
       {/* Filter bar */}
       <div className="flex flex-wrap gap-2 items-end">
         <div>
-          <label className="text-xs text-zinc-500 block mb-1">Desde</label>
-          <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none"
-          />
+          <label className="text-xs text-muted block mb-1">Desde</label>
+          <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="text-xs text-zinc-500 block mb-1">Hasta</label>
-          <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none"
-          />
+          <label className="text-xs text-muted block mb-1">Hasta</label>
+          <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="text-xs text-zinc-500 block mb-1">Establecimiento</label>
-          <select value={fieldId} onChange={e => setFieldId(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none"
-          >
+          <label className="text-xs text-muted block mb-1">Establecimiento</label>
+          <select value={fieldId} onChange={e => setFieldId(e.target.value)} className={inputClass}>
             <option value="">Todos</option>
             {fields.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
         </div>
         <div>
-          <label className="text-xs text-zinc-500 block mb-1">Cultivo</label>
+          <label className="text-xs text-muted block mb-1">Cultivo</label>
           <input value={crop} onChange={e => setCrop(e.target.value)} placeholder="ej: Soja"
-            className="bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none w-28"
+            className={`${inputClass} w-28`}
           />
         </div>
         <button onClick={applyFilters}
-          className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded-lg"
+          className="bg-brand hover:bg-brand-hover text-white text-sm px-4 py-2 rounded-xl transition-colors"
         >
           Aplicar
         </button>
         {(dateFrom || dateTo || fieldId || crop) && (
-          <button onClick={clearFilters} className="text-zinc-400 hover:text-zinc-200 text-sm px-3 py-1.5">
+          <button onClick={clearFilters} className="text-muted hover:text-ink text-sm px-3 py-2">
             Limpiar
           </button>
         )}
       </div>
-      {exportError && <p className="text-red-400 text-sm">{exportError}</p>}
+      {exportError && <p className="text-danger text-sm">{exportError}</p>}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {kpiCards.map(card => (
           <Link key={card.label} href={card.href}
-            className="bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-xl p-4 transition-colors"
+            className={`bg-card border rounded-2xl p-4 transition-all shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 ${
+              card.alert ? 'border-danger/30' : 'border-rim'
+            }`}
           >
-            <p className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
-            <p className="text-xs text-zinc-400 mt-1">{card.label}</p>
+            <p className={`font-display text-3xl font-bold ${card.alert ? 'text-danger' : card.warn ? 'text-accent' : 'text-brand'}`}>
+              {card.value}
+            </p>
+            <p className="text-xs text-muted mt-1">{card.label}</p>
           </Link>
         ))}
       </div>
@@ -167,17 +176,17 @@ export default function DashboardPage() {
       {/* Gráficos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Actividades por estado */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <h2 className="text-sm font-medium text-zinc-300 mb-3">Actividades por estado</h2>
+        <div className={cardClass}>
+          <h2 className="text-sm font-semibold text-ink mb-4">Actividades por estado</h2>
           {actChartData.length === 0 ? (
-            <p className="text-zinc-500 text-sm text-center py-8">Sin datos</p>
+            <p className="text-subtle text-sm text-center py-8">Sin datos</p>
           ) : (
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={actChartData} layout="vertical" margin={{ left: 10, right: 20, top: 0, bottom: 0 }}>
-                <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} />
-                <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} width={80} />
-                <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8 }} />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                <XAxis type="number" tick={{ fill: '#94A3B8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="name" tick={{ fill: '#64748B', fontSize: 11 }} width={80} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#F3F4F6' }} />
+                <Bar dataKey="value" radius={[0, 6, 6, 0]}>
                   {actChartData.map((entry, i) => (
                     <Cell key={i} fill={entry.fill} />
                   ))}
@@ -188,10 +197,10 @@ export default function DashboardPage() {
         </div>
 
         {/* Campañas por cultivo */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <h2 className="text-sm font-medium text-zinc-300 mb-3">Campañas por cultivo</h2>
+        <div className={cardClass}>
+          <h2 className="text-sm font-semibold text-ink mb-4">Campañas por cultivo</h2>
           {campaignsByCrop.length === 0 ? (
-            <p className="text-zinc-500 text-sm text-center py-8">Sin datos</p>
+            <p className="text-subtle text-sm text-center py-8">Sin datos</p>
           ) : (
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
@@ -203,45 +212,45 @@ export default function DashboardPage() {
                     <Cell key={i} fill={CATEGORY_COLORS[i % CATEGORY_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8 }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
               </PieChart>
             </ResponsiveContainer>
           )}
         </div>
 
         {/* Stock por categoría */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <h2 className="text-sm font-medium text-zinc-300 mb-3">Stock por categoría</h2>
+        <div className={cardClass}>
+          <h2 className="text-sm font-semibold text-ink mb-4">Stock por categoría</h2>
           {stockByCategory.length === 0 ? (
-            <p className="text-zinc-500 text-sm text-center py-8">Sin datos</p>
+            <p className="text-subtle text-sm text-center py-8">Sin datos</p>
           ) : (
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={stockByCategory} margin={{ left: 0, right: 10, top: 0, bottom: 20 }}>
-                <XAxis dataKey="category" tick={{ fill: '#a1a1aa', fontSize: 10 }} angle={-25} textAnchor="end" />
-                <YAxis tick={{ fill: '#71717a', fontSize: 11 }} />
-                <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8 }}
+                <XAxis dataKey="category" tick={{ fill: '#64748B', fontSize: 10 }} angle={-25} textAnchor="end" axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#94A3B8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#F3F4F6' }}
                   formatter={(v) => [v, 'Cantidad total']}
                 />
-                <Bar dataKey="totalQuantity" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="totalQuantity" fill="#0E6251" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </div>
 
         {/* Rendimiento campañas cerradas */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <h2 className="text-sm font-medium text-zinc-300 mb-3">Rendimiento campañas cerradas</h2>
+        <div className={cardClass}>
+          <h2 className="text-sm font-semibold text-ink mb-4">Rendimiento campañas cerradas</h2>
           {yieldData.length === 0 ? (
-            <p className="text-zinc-500 text-sm text-center py-8">Sin campañas cerradas con rendimiento</p>
+            <p className="text-subtle text-sm text-center py-8">Sin campañas cerradas con rendimiento</p>
           ) : (
             <ResponsiveContainer width="100%" height={180}>
               <LineChart data={yieldData} margin={{ left: 0, right: 10, top: 0, bottom: 20 }}>
-                <XAxis dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 9 }} angle={-20} textAnchor="end" />
-                <YAxis tick={{ fill: '#71717a', fontSize: 11 }} />
-                <Tooltip contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8 }}
+                <XAxis dataKey="name" tick={{ fill: '#64748B', fontSize: 9 }} angle={-20} textAnchor="end" axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#94A3B8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={TOOLTIP_STYLE}
                   formatter={(v, _, p) => [`${v} ${p?.payload?.unidad ?? ''}`, 'Rendimiento']}
                 />
-                <Line type="monotone" dataKey="rendimiento" stroke="#22c55e" strokeWidth={2} dot={{ fill: '#22c55e', r: 4 }} />
+                <Line type="monotone" dataKey="rendimiento" stroke="#0E6251" strokeWidth={2.5} dot={{ fill: '#0E6251', r: 4, strokeWidth: 0 }} />
               </LineChart>
             </ResponsiveContainer>
           )}
@@ -250,11 +259,11 @@ export default function DashboardPage() {
 
       {/* Alertas activas */}
       {kpis.stockAlerts > 0 && (
-        <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4">
-          <h2 className="text-sm font-medium text-red-400 mb-1">Alertas activas</h2>
-          <p className="text-sm text-zinc-400">
-            Hay <span className="text-red-400 font-medium">{kpis.stockAlerts}</span> ítem{kpis.stockAlerts > 1 ? 's' : ''} de stock por debajo del umbral.{' '}
-            <Link href="/dashboard/stock" className="text-red-400 underline">Ver stock →</Link>
+        <div className="bg-danger-light border border-danger/20 rounded-2xl p-4">
+          <h2 className="text-sm font-semibold text-danger mb-1">Alertas activas</h2>
+          <p className="text-sm text-muted">
+            Hay <span className="text-danger font-semibold">{kpis.stockAlerts}</span> ítem{kpis.stockAlerts > 1 ? 's' : ''} de stock por debajo del umbral.{' '}
+            <Link href="/dashboard/stock" className="text-danger underline">Ver stock →</Link>
           </p>
         </div>
       )}
