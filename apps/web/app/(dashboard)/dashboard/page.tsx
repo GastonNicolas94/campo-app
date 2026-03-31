@@ -1,5 +1,6 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { api, type ReportSummary, type Field } from '@/lib/api'
 import {
@@ -24,7 +25,7 @@ export default function DashboardPage() {
   const [fieldId, setFieldId] = useState('')
   const [crop, setCrop] = useState('')
 
-  async function load(filters?: { dateFrom?: string; dateTo?: string; fieldId?: string; crop?: string }) {
+  const load = useCallback(async (filters?: { dateFrom?: string; dateTo?: string; fieldId?: string; crop?: string }) => {
     try {
       const [sum, fs] = await Promise.all([api.reports.summary(filters), api.fields.list()])
       setSummary(sum)
@@ -34,9 +35,9 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
 
   function applyFilters() {
     setLoading(true)
@@ -154,12 +155,12 @@ export default function DashboardPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {kpiCards.map(card => (
-          <a key={card.label} href={card.href}
+          <Link key={card.label} href={card.href}
             className="bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-xl p-4 transition-colors"
           >
             <p className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
             <p className="text-xs text-zinc-400 mt-1">{card.label}</p>
-          </a>
+          </Link>
         ))}
       </div>
 
@@ -253,7 +254,7 @@ export default function DashboardPage() {
           <h2 className="text-sm font-medium text-red-400 mb-1">Alertas activas</h2>
           <p className="text-sm text-zinc-400">
             Hay <span className="text-red-400 font-medium">{kpis.stockAlerts}</span> ítem{kpis.stockAlerts > 1 ? 's' : ''} de stock por debajo del umbral.{' '}
-            <a href="/dashboard/stock" className="text-red-400 underline">Ver stock →</a>
+            <Link href="/dashboard/stock" className="text-red-400 underline">Ver stock →</Link>
           </p>
         </div>
       )}
