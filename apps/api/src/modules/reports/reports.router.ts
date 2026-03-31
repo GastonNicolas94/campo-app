@@ -1,8 +1,20 @@
 import { Hono } from 'hono'
+import { z } from 'zod'
 import { ReportsRepository } from './reports.repository'
 import { ReportsService } from './reports.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'
 import { db } from '../../shared/db'
+
+const STOCK_CATEGORIES = ['agroquimico', 'semilla', 'combustible', 'fertilizante', 'repuesto', 'outro'] as const
+
+const reportFiltersSchema = z.object({
+  dateFrom: z.string().date().optional(),
+  dateTo: z.string().date().optional(),
+  fieldId: z.string().uuid().optional(),
+  lotId: z.string().uuid().optional(),
+  crop: z.string().optional(),
+  stockCategory: z.enum(STOCK_CATEGORIES).optional(),
+})
 
 export function createReportsRouter() {
   const router = new Hono()
@@ -11,19 +23,32 @@ export function createReportsRouter() {
   router.use('*', verifyAuth)
 
   router.get('/summary', async (c) => {
-    const { tenantId } = c.get('user')
-    const { dateFrom, dateTo, fieldId, lotId, crop, stockCategory } = c.req.query()
-    const filters = { dateFrom, dateTo, fieldId, lotId, crop, stockCategory }
-    const data = await service.getSummary(tenantId, filters)
-    return c.json({ data })
+    try {
+      const { tenantId } = c.get('user')
+      const parsed = reportFiltersSchema.safeParse(c.req.query())
+      if (!parsed.success) {
+        return c.json({ error: 'Parámetros inválidos' }, 400)
+      }
+      const filters = parsed.data
+      const data = await service.getSummary(tenantId, filters)
+      return c.json({ data })
+    } catch (err) {
+      return c.json({ error: 'Error al obtener resumen' }, 500)
+    }
   })
 
   router.get('/export', async (c) => {
     try {
       const VALID_MODULES = ['campaigns', 'activities', 'stock']
       const { tenantId } = c.get('user')
-      const { format = 'excel', dateFrom, dateTo, fieldId, lotId, crop, stockCategory, modules = 'campaigns,activities,stock' } = c.req.query()
-      const filters = { dateFrom, dateTo, fieldId, lotId, crop, stockCategory }
+      const { format = 'excel', modules = 'campaigns,activities,stock', ...rawFilters } = c.req.query()
+
+      const parsed = reportFiltersSchema.safeParse(rawFilters)
+      if (!parsed.success) {
+        return c.json({ error: 'Parámetros inválidos' }, 400)
+      }
+      const filters = parsed.data
+
       const moduleList = modules.split(',').map(m => m.trim()).filter(m => VALID_MODULES.includes(m))
 
       if (moduleList.length === 0) {
