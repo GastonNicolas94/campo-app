@@ -23,38 +23,15 @@ export class ReportsRepository {
       filters.fieldId ? eq(fields.id, filters.fieldId) : undefined,
     )
 
-    const [fResult] = await this.db
-      .select({ count: sql<number>`cast(count(*) as integer)` })
-      .from(fields).where(fieldFilter)
-
-    const [lResult] = await this.db
-      .select({ count: sql<number>`cast(count(*) as integer)` })
-      .from(lots).innerJoin(fields, eq(lots.fieldId, fields.id))
-      .where(and(fieldFilter, filters.lotId ? eq(lots.id, filters.lotId) : undefined))
-
-    const [cResult] = await this.db
-      .select({ count: sql<number>`cast(count(*) as integer)` })
-      .from(campaigns)
-      .innerJoin(lots, eq(campaigns.lotId, lots.id))
-      .innerJoin(fields, eq(lots.fieldId, fields.id))
-      .where(and(fieldFilter, eq(campaigns.status, 'active')))
-
-    const [aResult] = await this.db
-      .select({ count: sql<number>`cast(count(*) as integer)` })
-      .from(activities)
-      .innerJoin(lots, eq(activities.lotId, lots.id))
-      .innerJoin(fields, eq(lots.fieldId, fields.id))
-      .where(and(fieldFilter, eq(activities.status, 'pending')))
-
-    const [sResult] = await this.db
-      .select({ count: sql<number>`cast(count(*) as integer)` })
-      .from(stockItems)
-      .innerJoin(fields, eq(stockItems.fieldId, fields.id))
-      .where(and(
-        fieldFilter,
-        isNotNull(stockItems.alertThreshold),
-        sql`${stockItems.currentQuantity} <= ${stockItems.alertThreshold}`,
-      ))
+    const [
+      [fResult], [lResult], [cResult], [aResult], [sResult]
+    ] = await Promise.all([
+      this.db.select({ count: sql<number>`cast(count(*) as integer)` }).from(fields).where(fieldFilter),
+      this.db.select({ count: sql<number>`cast(count(*) as integer)` }).from(lots).innerJoin(fields, eq(lots.fieldId, fields.id)).where(and(fieldFilter, filters.lotId ? eq(lots.id, filters.lotId) : undefined)),
+      this.db.select({ count: sql<number>`cast(count(*) as integer)` }).from(campaigns).innerJoin(lots, eq(campaigns.lotId, lots.id)).innerJoin(fields, eq(lots.fieldId, fields.id)).where(and(fieldFilter, eq(campaigns.status, 'active'))),
+      this.db.select({ count: sql<number>`cast(count(*) as integer)` }).from(activities).innerJoin(lots, eq(activities.lotId, lots.id)).innerJoin(fields, eq(lots.fieldId, fields.id)).where(and(fieldFilter, eq(activities.status, 'pending'))),
+      this.db.select({ count: sql<number>`cast(count(*) as integer)` }).from(stockItems).innerJoin(fields, eq(stockItems.fieldId, fields.id)).where(and(fieldFilter, isNotNull(stockItems.alertThreshold), sql`${stockItems.currentQuantity} <= ${stockItems.alertThreshold}`)),
+    ])
 
     return {
       totalFields: fResult?.count ?? 0,
