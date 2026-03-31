@@ -30,6 +30,7 @@ export default function StockPage() {
   const [mReason, setMReason] = useState('')
 
   const [saving, setSaving] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
@@ -89,6 +90,15 @@ export default function StockPage() {
     }
   }
 
+  async function handleExport() {
+    setExporting(true)
+    try {
+      await api.reports.download({ format: 'excel', modules: 'stock' })
+    } catch {} finally {
+      setExporting(false)
+    }
+  }
+
   if (loading) return <p className="text-zinc-400 text-center mt-16">Cargando...</p>
 
   return (
@@ -102,11 +112,18 @@ export default function StockPage() {
             </span>
           )}
         </div>
-        <button onClick={() => setShowForm(!showForm)}
-          className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg"
-        >
-          + Nuevo item
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleExport} disabled={exporting}
+            className="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-white text-sm px-3 py-2 rounded-lg"
+          >
+            {exporting ? '...' : '↓ Excel'}
+          </button>
+          <button onClick={() => setShowForm(!showForm)}
+            className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg"
+          >
+            + Nuevo item
+          </button>
+        </div>
       </div>
 
       {successMsg && (

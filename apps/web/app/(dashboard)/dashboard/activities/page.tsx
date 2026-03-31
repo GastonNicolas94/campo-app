@@ -21,6 +21,7 @@ export default function ActivitiesPage() {
   const [formLotId, setFormLotId] = useState('')
   const [formDueDate, setFormDueDate] = useState('')
   const [saving, setSaving] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function load() {
@@ -69,17 +70,36 @@ export default function ActivitiesPage() {
     } catch {}
   }
 
+  async function handleExport() {
+    setExporting(true)
+    try {
+      await api.reports.download({
+        format: 'excel',
+        modules: 'activities',
+      })
+    } catch {} finally {
+      setExporting(false)
+    }
+  }
+
   if (loading) return <p className="text-zinc-400 text-center mt-16">Cargando...</p>
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Actividades</h1>
-        <button onClick={() => setShowForm(!showForm)}
-          className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg"
-        >
-          + Nueva
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleExport} disabled={exporting}
+            className="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-white text-sm px-3 py-2 rounded-lg"
+          >
+            {exporting ? '...' : '↓ Excel'}
+          </button>
+          <button onClick={() => setShowForm(!showForm)}
+            className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg"
+          >
+            + Nueva
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-3">

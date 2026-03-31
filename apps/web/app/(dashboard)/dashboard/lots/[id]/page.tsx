@@ -14,6 +14,7 @@ export default function LotDetailPage() {
   const [variety, setVariety] = useState('')
   const [sowingDate, setSowingDate] = useState('')
   const [saving, setSaving] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function load() {
@@ -43,6 +44,15 @@ export default function LotDetailPage() {
     }
   }
 
+  async function handleExport() {
+    setExporting(true)
+    try {
+      await api.reports.download({ format: 'excel', modules: 'campaigns', lotId: id })
+    } catch {} finally {
+      setExporting(false)
+    }
+  }
+
   if (loading) return <p className="text-zinc-400 text-center mt-16">Cargando...</p>
   if (!lot) return null
 
@@ -58,11 +68,18 @@ export default function LotDetailPage() {
 
       <div className="flex items-center justify-between">
         <h2 className="font-medium text-zinc-300">Campañas ({campaigns.length})</h2>
-        <button onClick={() => setShowForm(!showForm)}
-          className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm px-3 py-1.5 rounded-lg"
-        >
-          + Campaña
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleExport} disabled={exporting}
+            className="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-white text-sm px-3 py-1.5 rounded-lg"
+          >
+            {exporting ? '...' : '↓ Excel'}
+          </button>
+          <button onClick={() => setShowForm(!showForm)}
+            className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm px-3 py-1.5 rounded-lg"
+          >
+            + Campaña
+          </button>
+        </div>
       </div>
 
       {showForm && (
