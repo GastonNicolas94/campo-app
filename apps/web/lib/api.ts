@@ -1,8 +1,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
-  const res = await fetch(`${API_URL}${path}`, {
+async function doFetch(path: string, token: string | null, options?: RequestInit) {
+  return fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -10,6 +9,33 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       ...options?.headers,
     },
   })
+}
+
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+  let res = await doFetch(path, token, options)
+
+  if (res.status === 401 && typeof window !== 'undefined') {
+    const refreshToken = localStorage.getItem('refreshToken')
+    if (refreshToken) {
+      try {
+        const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        })
+        if (refreshRes.ok) {
+          const refreshJson = await refreshRes.json()
+          const newToken = refreshJson.data?.accessToken
+          if (newToken) {
+            localStorage.setItem('accessToken', newToken)
+            res = await doFetch(path, newToken, options)
+          }
+        }
+      } catch {}
+    }
+  }
+
   const json = await res.json()
   if (!res.ok) throw new Error(json.error ?? 'Error en la solicitud')
   return json.data as T
