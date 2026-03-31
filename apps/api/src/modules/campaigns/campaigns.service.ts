@@ -1,6 +1,6 @@
 import type { CampaignsRepository } from './campaigns.repository'
 import type { LotsRepository } from '../lots/lots.repository'
-import type { CreateCampaignInput, UpdateCampaignInput, CampaignResultInput } from '@campo-app/validators/campaigns'
+import type { CreateCampaignInput, UpdateCampaignInput, CampaignResultInput } from '../../validators/campaigns'
 
 export class CampaignsService {
   constructor(

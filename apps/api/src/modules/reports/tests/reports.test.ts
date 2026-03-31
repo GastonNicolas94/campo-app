@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createTestDb, type TestDb } from '../../../shared/test-db'
 import { ReportsRepository } from '../reports.repository'
-import { tenants, users, fields, lots, campaigns, campaignResults, activities, stockItems } from '@campo-app/db'
+import { tenants, users, fields, lots, campaigns, campaignResults, activities, stockItems } from '../../../db'
 
 let db: TestDb
 let repo: ReportsRepository

@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { createStockItemSchema, updateStockItemSchema, createMovementSchema } from '@campo-app/validators/stock'
+import { createStockItemSchema, updateStockItemSchema, createMovementSchema } from '../../validators/stock'
 import { StockRepository } from './stock.repository'
 import { StockService } from './stock.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'

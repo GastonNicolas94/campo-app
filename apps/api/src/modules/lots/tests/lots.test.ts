@@ -4,7 +4,7 @@ import { LotsRepository } from '../lots.repository'
 import { LotsService } from '../lots.service'
 import { FieldsRepository } from '../../fields/fields.repository'
 import { FieldsService } from '../../fields/fields.service'
-import { tenants } from '@campo-app/db'
+import { tenants } from '../../../db'
 
 describe('LotsService', () => {
   let lotsService: LotsService

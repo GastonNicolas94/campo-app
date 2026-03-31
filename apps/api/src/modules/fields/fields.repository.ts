@@ -1,7 +1,7 @@
 import { eq, and } from 'drizzle-orm'
-import { fields } from '@campo-app/db'
+import { fields } from '../../db'
 import type { Db } from '../../shared/db'
-import type { CreateFieldInput, UpdateFieldInput } from '@campo-app/validators/fields'
+import type { CreateFieldInput, UpdateFieldInput } from '../../validators/fields'
 
 export class FieldsRepository {
   constructor(private db: Db) {}

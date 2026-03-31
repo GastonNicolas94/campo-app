@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { createLotSchema, updateLotSchema } from '@campo-app/validators/lots'
+import { createLotSchema, updateLotSchema } from '../../validators/lots'
 import { LotsRepository } from './lots.repository'
 import { LotsService } from './lots.service'
 import { FieldsRepository } from '../fields/fields.repository'

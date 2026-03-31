@@ -2,7 +2,7 @@ import { eq, and, sql, gte, lte, isNotNull } from 'drizzle-orm'
 import {
   fields, lots, campaigns, campaignResults,
   activities, stockItems,
-} from '@campo-app/db'
+} from '../../db'
 import type { Db } from '../../shared/db'
 
 export interface ReportFilters {

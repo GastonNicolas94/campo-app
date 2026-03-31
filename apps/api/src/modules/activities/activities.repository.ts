@@ -1,7 +1,7 @@
 import { eq, and, isNull } from 'drizzle-orm'
-import { activities, fields, lots } from '@campo-app/db'
+import { activities, fields, lots } from '../../db'
 import type { Db } from '../../shared/db'
-import type { CreateActivityInput, UpdateActivityInput, PatchStatusInput } from '@campo-app/validators/activities'
+import type { CreateActivityInput, UpdateActivityInput, PatchStatusInput } from '../../validators/activities'
 
 export class ActivitiesRepository {
   constructor(private db: Db) {}

@@ -1,5 +1,5 @@
 import type { FieldsRepository } from './fields.repository'
-import type { CreateFieldInput, UpdateFieldInput } from '@campo-app/validators/fields'
+import type { CreateFieldInput, UpdateFieldInput } from '../../validators/fields'
 
 export class FieldsService {
   constructor(private repo: FieldsRepository) {}

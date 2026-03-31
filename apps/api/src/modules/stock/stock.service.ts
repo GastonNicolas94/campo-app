@@ -1,5 +1,5 @@
 import type { StockRepository } from './stock.repository'
-import type { CreateStockItemInput, UpdateStockItemInput, CreateMovementInput } from '@campo-app/validators/stock'
+import type { CreateStockItemInput, UpdateStockItemInput, CreateMovementInput } from '../../validators/stock'
 
 export class StockService {
   constructor(private repo: StockRepository) {}

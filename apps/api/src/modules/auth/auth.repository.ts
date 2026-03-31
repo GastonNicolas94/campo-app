@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
-import { tenants, users } from '@campo-app/db'
+import { tenants, users } from '../../db'
 import type { Db } from '../../shared/db'
-import type { Role } from '@campo-app/types'
+import type { Role } from '../../types'
 
 interface CreateTenantInput {
   name: string

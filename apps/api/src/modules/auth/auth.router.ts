@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { registerSchema, loginSchema, refreshSchema } from '@campo-app/validators/auth'
+import { registerSchema, loginSchema, refreshSchema } from '../../validators/auth'
 import { AuthRepository } from './auth.repository'
 import { AuthService } from './auth.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'

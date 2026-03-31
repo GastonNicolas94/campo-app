@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { signAccessToken, signRefreshToken, verifyToken } from '../../shared/jwt'
 import type { AuthRepository } from './auth.repository'
-import type { RegisterInput, LoginInput, RefreshInput } from '@campo-app/validators/auth'
+import type { RegisterInput, LoginInput, RefreshInput } from '../../validators/auth'
 
 export class AuthService {
   constructor(private repo: AuthRepository) {}

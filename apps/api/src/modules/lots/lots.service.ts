@@ -1,6 +1,6 @@
 import type { LotsRepository } from './lots.repository'
 import type { FieldsRepository } from '../fields/fields.repository'
-import type { CreateLotInput, UpdateLotInput } from '@campo-app/validators/lots'
+import type { CreateLotInput, UpdateLotInput } from '../../validators/lots'
 
 export class LotsService {
   constructor(

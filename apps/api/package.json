@@ -10,9 +10,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@campo-app/db": "workspace:*",
-    "@campo-app/types": "workspace:*",
-    "@campo-app/validators": "workspace:*",
     "@hono/node-server": "^1.12.0",
     "@hono/zod-validator": "^0.3.0",
     "bcryptjs": "^2.4.3",
@@ -31,6 +28,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.0.0",
     "@types/pdfkit": "^0.17.5",
+    "drizzle-kit": "^0.24.0",
     "typescript": "^5.5.0",
     "vitest": "^2.1.0"
   }

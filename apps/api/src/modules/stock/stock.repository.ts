@@ -1,7 +1,7 @@
 import { eq, and } from 'drizzle-orm'
-import { stockItems, stockMovements, fields } from '@campo-app/db'
+import { stockItems, stockMovements, fields } from '../../db'
 import type { Db } from '../../shared/db'
-import type { CreateStockItemInput, UpdateStockItemInput, CreateMovementInput } from '@campo-app/validators/stock'
+import type { CreateStockItemInput, UpdateStockItemInput, CreateMovementInput } from '../../validators/stock'
 
 export class StockRepository {
   constructor(private db: Db) {}

@@ -1,5 +1,5 @@
 import type { ActivitiesRepository } from './activities.repository'
-import type { CreateActivityInput, UpdateActivityInput, PatchStatusInput } from '@campo-app/validators/activities'
+import type { CreateActivityInput, UpdateActivityInput, PatchStatusInput } from '../../validators/activities'
 
 export class ActivitiesService {
   constructor(private repo: ActivitiesRepository) {}

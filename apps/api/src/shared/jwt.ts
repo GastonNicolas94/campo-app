@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose'
-import type { JwtPayload } from '@campo-app/types'
+import type { JwtPayload } from '../types'
 
 function getSecret(type: 'access' | 'refresh'): Uint8Array {
   const key = type === 'access' ? process.env.JWT_SECRET : process.env.JWT_REFRESH_SECRET

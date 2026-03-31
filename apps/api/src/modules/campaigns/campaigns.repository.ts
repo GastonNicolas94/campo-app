@@ -1,7 +1,7 @@
 import { eq, and } from 'drizzle-orm'
-import { campaigns, campaignResults, lots, fields } from '@campo-app/db'
+import { campaigns, campaignResults, lots, fields } from '../../db'
 import type { Db } from '../../shared/db'
-import type { CreateCampaignInput, UpdateCampaignInput, CampaignResultInput } from '@campo-app/validators/campaigns'
+import type { CreateCampaignInput, UpdateCampaignInput, CampaignResultInput } from '../../validators/campaigns'
 
 export class CampaignsRepository {
   constructor(private db: Db) {}

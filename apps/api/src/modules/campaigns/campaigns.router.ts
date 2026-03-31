@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { createCampaignSchema, updateCampaignSchema, campaignResultSchema } from '@campo-app/validators/campaigns'
+import { createCampaignSchema, updateCampaignSchema, campaignResultSchema } from '../../validators/campaigns'
 import { CampaignsRepository } from './campaigns.repository'
 import { CampaignsService } from './campaigns.service'
 import { LotsRepository } from '../lots/lots.repository'

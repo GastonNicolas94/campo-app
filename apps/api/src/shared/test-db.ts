@@ -1,6 +1,6 @@
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
-import * as schema from '@campo-app/db'
+import * as schema from '../db'
 
 export async function createTestDb() {
   const client = new PGlite()

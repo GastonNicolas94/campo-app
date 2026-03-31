@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { createActivitySchema, updateActivitySchema, patchStatusSchema } from '@campo-app/validators/activities'
+import { createActivitySchema, updateActivitySchema, patchStatusSchema } from '../../validators/activities'
 import { ActivitiesRepository } from './activities.repository'
 import { ActivitiesService } from './activities.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'

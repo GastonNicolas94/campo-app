@@ -1,6 +1,6 @@
 import { createMiddleware } from 'hono/factory'
 import { verifyToken } from '../jwt'
-import type { JwtPayload } from '@campo-app/types'
+import type { JwtPayload } from '../../types'
 
 declare module 'hono' {
   interface ContextVariableMap {

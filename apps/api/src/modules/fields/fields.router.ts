@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { createFieldSchema, updateFieldSchema } from '@campo-app/validators/fields'
+import { createFieldSchema, updateFieldSchema } from '../../validators/fields'
 import { FieldsRepository } from './fields.repository'
 import { FieldsService } from './fields.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'

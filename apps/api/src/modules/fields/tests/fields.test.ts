@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { createTestDb, type TestDb } from '../../../shared/test-db'
 import { FieldsRepository } from '../fields.repository'
 import { FieldsService } from '../fields.service'
-import { tenants } from '@campo-app/db'
+import { tenants } from '../../../db'
 
 describe('FieldsService', () => {
   let service: FieldsService
