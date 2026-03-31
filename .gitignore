@@ -3,6 +3,12 @@ node_modules
 dist
 .env
 .env.local
+.env*
 .turbo
 drizzle
 *.db
+*.tsbuildinfo
+next-env.d.ts
+out/
+.DS_Store
+*.pem
