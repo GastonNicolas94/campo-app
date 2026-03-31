@@ -128,6 +128,44 @@ export async function createTestDb() {
     `)
   } catch {}
 
+  try {
+    await client.exec(`CREATE TYPE stock_category AS ENUM ('agroquimico', 'semilla', 'combustible', 'fertilizante', 'repuesto', 'otro')`)
+  } catch {}
+
+  try {
+    await client.exec(`CREATE TYPE stock_movement_type AS ENUM ('in', 'out')`)
+  } catch {}
+
+  try {
+    await client.exec(`
+      CREATE TABLE stock_items (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        field_id UUID NOT NULL REFERENCES fields(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        category stock_category NOT NULL,
+        unit TEXT NOT NULL,
+        current_quantity NUMERIC(10,2) NOT NULL DEFAULT 0,
+        alert_threshold NUMERIC(10,2),
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+      )
+    `)
+  } catch {}
+
+  try {
+    await client.exec(`
+      CREATE TABLE stock_movements (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        item_id UUID NOT NULL REFERENCES stock_items(id) ON DELETE CASCADE,
+        type stock_movement_type NOT NULL,
+        quantity NUMERIC(10,2) NOT NULL,
+        date DATE NOT NULL,
+        reason TEXT,
+        user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+      )
+    `)
+  } catch {}
+
   return db
 }
 
