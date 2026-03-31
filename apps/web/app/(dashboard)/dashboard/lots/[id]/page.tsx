@@ -56,7 +56,7 @@ export default function LotDetailPage() {
     setCloseSaving(true); setCloseError(null)
     try {
       await api.campaigns.closeWithResult(closingId, {
-        yieldAmount: closeYield,
+        yieldAmount: Number(closeYield),
         yieldUnit: closeUnit,
         notes: closeNotes || undefined,
       })

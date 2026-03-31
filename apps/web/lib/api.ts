@@ -83,7 +83,7 @@ export const api = {
     getById: (id: string) => request<Campaign>(`/campaigns/${id}`),
     update: (id: string, body: Partial<{ crop: string; variety: string; harvestDate: string }>) =>
       request<Campaign>(`/campaigns/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
-    closeWithResult: (id: string, body: { yieldAmount?: string; yieldUnit?: 'qq_ha' | 'tn_ha'; totalRevenue?: string; notes?: string }) =>
+    closeWithResult: (id: string, body: { yieldAmount?: number; yieldUnit?: 'qq_ha' | 'tn_ha'; totalRevenue?: number; notes?: string }) =>
       request<Campaign>(`/campaigns/${id}/results`, { method: 'POST', body: JSON.stringify(body) }),
   },
   activities: {
