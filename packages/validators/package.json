@@ -7,7 +7,8 @@
     "./fields": "./src/fields.ts",
     "./lots": "./src/lots.ts",
     "./campaigns": "./src/campaigns.ts",
-    "./activities": "./src/activities.ts"
+    "./activities": "./src/activities.ts",
+    "./stock": "./src/stock.ts"
   },
   "dependencies": {
     "zod": "^3.23.0"
