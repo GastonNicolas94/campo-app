@@ -33,6 +33,8 @@ export interface Field { id: string; name: string; location?: string; totalHecta
 export interface Lot { id: string; fieldId: string; name: string; hectares?: string; createdAt: string }
 export interface Campaign { id: string; lotId: string; crop: string; variety?: string; sowingDate: string; harvestDate?: string; status: 'active' | 'closed'; createdAt: string }
 export interface Activity { id: string; title: string; description?: string; status: 'pending' | 'done' | 'skipped'; dueDate?: string; lotId?: string; campaignId?: string; assignedTo?: string; completionNotes?: string; completedAt?: string; createdAt: string }
+export interface StockItem { id: string; fieldId: string; name: string; category: string; unit: string; currentQuantity: string; alertThreshold?: string; createdAt: string }
+export interface StockMovement { id: string; itemId: string; type: 'in' | 'out'; quantity: string; date: string; reason?: string; createdAt: string }
 
 export const api = {
   auth: {
@@ -83,5 +85,21 @@ export const api = {
     patchStatus: (id: string, body: { status: 'done' | 'skipped'; completionNotes?: string }) =>
       request<Activity>(`/activities/${id}/status`, { method: 'PATCH', body: JSON.stringify(body) }),
     delete: (id: string) => request<void>(`/activities/${id}`, { method: 'DELETE' }),
+  },
+  stock: {
+    list: (fieldId?: string) => {
+      const qs = fieldId ? `?fieldId=${fieldId}` : ''
+      return request<StockItem[]>(`/stock/items${qs}`)
+    },
+    getById: (id: string) => request<StockItem>(`/stock/items/${id}`),
+    create: (body: { fieldId: string; name: string; category: string; unit: string; currentQuantity: number; alertThreshold?: number }) =>
+      request<StockItem>('/stock/items', { method: 'POST', body: JSON.stringify(body) }),
+    update: (id: string, body: Partial<{ name: string; category: string; unit: string; alertThreshold: number }>) =>
+      request<StockItem>(`/stock/items/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    delete: (id: string) => request<void>(`/stock/items/${id}`, { method: 'DELETE' }),
+    addMovement: (id: string, body: { type: 'in' | 'out'; quantity: number; date: string; reason?: string }) =>
+      request<{ movement: StockMovement; item: StockItem; alert: boolean }>(`/stock/items/${id}/movements`, { method: 'POST', body: JSON.stringify(body) }),
+    getMovements: (id: string) => request<StockMovement[]>(`/stock/items/${id}/movements`),
+    alerts: () => request<StockItem[]>('/stock/alerts'),
   },
 }
