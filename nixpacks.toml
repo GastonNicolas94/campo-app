@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["npm install -g pnpm", "pnpm install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["echo 'using tsx runtime, no build needed'"]
+
+[start]
+cmd = "pnpm --filter api start"
