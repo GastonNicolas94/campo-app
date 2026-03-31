@@ -16,6 +16,12 @@ export default function LotDetailPage() {
   const [saving, setSaving] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [closingId, setClosingId] = useState<string | null>(null)
+  const [closeYield, setCloseYield] = useState('')
+  const [closeUnit, setCloseUnit] = useState<'qq_ha' | 'tn_ha'>('qq_ha')
+  const [closeNotes, setCloseNotes] = useState('')
+  const [closeSaving, setCloseSaving] = useState(false)
+  const [closeError, setCloseError] = useState<string | null>(null)
 
   async function load() {
     try {
@@ -41,6 +47,25 @@ export default function LotDetailPage() {
       setError(err instanceof Error ? err.message : 'Error')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleCloseCampaign(e: React.FormEvent) {
+    e.preventDefault()
+    if (!closingId) return
+    setCloseSaving(true); setCloseError(null)
+    try {
+      await api.campaigns.closeWithResult(closingId, {
+        yieldAmount: closeYield,
+        yieldUnit: closeUnit,
+        notes: closeNotes || undefined,
+      })
+      setClosingId(null); setCloseYield(''); setCloseNotes('')
+      await load()
+    } catch (err) {
+      setCloseError(err instanceof Error ? err.message : 'Error al cerrar campaña')
+    } finally {
+      setCloseSaving(false)
     }
   }
 
@@ -123,15 +148,74 @@ export default function LotDetailPage() {
             <li key={c.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <p className="font-medium">{c.crop}{c.variety ? ` — ${c.variety}` : ''}</p>
-                <span className={`text-xs px-2 py-0.5 rounded ${c.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-zinc-700 text-zinc-400'}`}>
-                  {c.status === 'active' ? 'Activa' : 'Cerrada'}
-                </span>
+                <div className="flex items-center gap-2">
+                  {c.status === 'active' && (
+                    <button
+                      onClick={() => { setClosingId(c.id); setCloseYield(''); setCloseNotes(''); setCloseError(null) }}
+                      className="text-xs px-2 py-0.5 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300"
+                    >
+                      Cerrar
+                    </button>
+                  )}
+                  <span className={`text-xs px-2 py-0.5 rounded ${c.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-zinc-700 text-zinc-400'}`}>
+                    {c.status === 'active' ? 'Activa' : 'Cerrada'}
+                  </span>
+                </div>
               </div>
               <p className="text-sm text-zinc-400 mt-1">Siembra: {c.sowingDate}</p>
               {c.harvestDate && <p className="text-sm text-zinc-400">Cosecha: {c.harvestDate}</p>}
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Modal cerrar campaña */}
+      {closingId && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <form onSubmit={handleCloseCampaign} className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-sm space-y-4">
+            <h2 className="text-lg font-semibold">Cerrar campaña</h2>
+            <div>
+              <label className="text-xs text-zinc-400 block mb-1">Rendimiento *</label>
+              <input
+                type="number" step="0.01" min="0" required
+                value={closeYield} onChange={e => setCloseYield(e.target.value)}
+                placeholder="ej: 35"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-zinc-400 block mb-1">Unidad *</label>
+              <select
+                value={closeUnit} onChange={e => setCloseUnit(e.target.value as 'qq_ha' | 'tn_ha')}
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
+              >
+                <option value="qq_ha">qq/ha</option>
+                <option value="tn_ha">tn/ha</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-zinc-400 block mb-1">Notas (opcional)</label>
+              <input
+                value={closeNotes} onChange={e => setCloseNotes(e.target.value)}
+                placeholder="Observaciones..."
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
+              />
+            </div>
+            {closeError && <p className="text-red-400 text-sm">{closeError}</p>}
+            <div className="flex gap-2 pt-1">
+              <button type="submit" disabled={closeSaving}
+                className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg flex-1"
+              >
+                {closeSaving ? 'Cerrando...' : 'Confirmar cierre'}
+              </button>
+              <button type="button" onClick={() => setClosingId(null)}
+                className="text-zinc-400 hover:text-zinc-200 text-sm px-4 py-2"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   )
