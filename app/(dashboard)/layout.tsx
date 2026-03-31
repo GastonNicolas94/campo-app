@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 const navItems = [
   { href: '/dashboard', label: 'Inicio' },
@@ -15,11 +15,16 @@ const navItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken')
     if (!token) router.replace('/login')
   }, [router])
+
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
 
   function logout() {
     localStorage.removeItem('accessToken')
@@ -29,6 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50 flex">
+      {/* Sidebar desktop */}
       <aside className="hidden md:flex flex-col w-56 border-r border-zinc-800 p-4 gap-1">
         <div className="mb-6 px-2">
           <span className="text-green-400 font-bold text-lg">Campo App</span>
@@ -53,27 +59,47 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header mobile */}
         <header className="md:hidden border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
           <span className="text-green-400 font-bold">Campo App</span>
-          <button onClick={logout} className="text-sm text-zinc-500">Salir</button>
+          <button
+            onClick={() => setMenuOpen(o => !o)}
+            className="flex flex-col gap-1.5 p-1"
+            aria-label="Menú"
+          >
+            <span className={`block w-6 h-0.5 bg-zinc-400 transition-transform ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+            <span className={`block w-6 h-0.5 bg-zinc-400 transition-opacity ${menuOpen ? 'opacity-0' : ''}`} />
+            <span className={`block w-6 h-0.5 bg-zinc-400 transition-transform ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+          </button>
         </header>
 
-        <main className="flex-1 p-4 md:p-8 max-w-5xl w-full mx-auto">{children}</main>
-
-        <nav className="md:hidden border-t border-zinc-800 flex">
-          {navItems.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex-1 py-3 text-xs text-center transition-colors ${
-                pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)) ? 'text-green-400' : 'text-zinc-500'
-              }`}
+        {/* Dropdown menu mobile */}
+        {menuOpen && (
+          <div className="md:hidden bg-zinc-900 border-b border-zinc-800 flex flex-col">
+            {navItems.map(item => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`px-5 py-3.5 text-sm border-b border-zinc-800/50 transition-colors ${
+                  pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+                    ? 'text-green-400 font-medium'
+                    : 'text-zinc-400'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <button
+              onClick={logout}
+              className="px-5 py-3.5 text-sm text-zinc-500 text-left"
             >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+              Cerrar sesión
+            </button>
+          </div>
+        )}
+
+        <main className="flex-1 p-4 md:p-8 max-w-5xl w-full mx-auto">{children}</main>
       </div>
     </div>
   )
