@@ -36,6 +36,20 @@ export interface Activity { id: string; title: string; description?: string; sta
 export interface StockItem { id: string; fieldId: string; name: string; category: string; unit: string; currentQuantity: string; alertThreshold?: string; createdAt: string }
 export interface StockMovement { id: string; itemId: string; type: 'in' | 'out'; quantity: string; date: string; reason?: string; createdAt: string }
 
+export interface ReportSummary {
+  kpis: {
+    totalFields: number
+    totalLots: number
+    activeCampaigns: number
+    pendingActivities: number
+    stockAlerts: number
+  }
+  activitiesByStatus: Array<{ status: string; count: number }>
+  campaignsByCrop: Array<{ crop: string; count: number }>
+  stockByCategory: Array<{ category: string; totalQuantity: number; itemCount: number }>
+  campaignYields: Array<{ crop: string; variety: string | null; yieldAmount: string; yieldUnit: string; harvestDate: string }>
+}
+
 export const api = {
   auth: {
     register: (body: unknown) => request<AuthResult>('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
@@ -101,5 +115,28 @@ export const api = {
       request<{ movement: StockMovement; item: StockItem; alert: boolean }>(`/stock/items/${id}/movements`, { method: 'POST', body: JSON.stringify(body) }),
     getMovements: (id: string) => request<StockMovement[]>(`/stock/items/${id}/movements`),
     alerts: () => request<StockItem[]>('/stock/alerts'),
+  },
+  reports: {
+    summary: (params?: { dateFrom?: string; dateTo?: string; fieldId?: string; crop?: string; stockCategory?: string }) => {
+      const qs = params ? '?' + new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, v]) => v != null && v !== '') as [string, string][])).toString() : ''
+      return request<ReportSummary>(`/reports/summary${qs}`)
+    },
+    download: async (params: { format: 'excel' | 'pdf'; dateFrom?: string; dateTo?: string; fieldId?: string; crop?: string; stockCategory?: string; modules?: string; lotId?: string }) => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+      const qs = '?' + new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, v]) => v != null && v !== '') as [string, string][])).toString()
+      const res = await fetch(`${API_URL}/reports/export${qs}`, {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      })
+      if (!res.ok) throw new Error('Error al exportar')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `reporte-campo-${new Date().toISOString().split('T')[0]}.${params.format === 'pdf' ? 'pdf' : 'xlsx'}`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    },
   },
 }
