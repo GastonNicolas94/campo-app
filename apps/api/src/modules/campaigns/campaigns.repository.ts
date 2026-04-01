@@ -20,6 +20,14 @@ export class CampaignsRepository {
     return rows[0]?.campaign ?? null
   }
 
+  async findActiveByCropAndLot(lotId: string, crop: string) {
+    const rows = await this.db
+      .select()
+      .from(campaigns)
+      .where(and(eq(campaigns.lotId, lotId), eq(campaigns.crop, crop), eq(campaigns.status, 'active')))
+    return rows[0] ?? null
+  }
+
   async create(lotId: string, input: CreateCampaignInput) {
     const rows = await this.db.insert(campaigns).values({ ...input, lotId }).returning()
     return rows[0]

@@ -76,7 +76,9 @@ export function createStockRouter() {
       const data = await service.addMovement(c.req.param('id'), tenantId, input, userId)
       return ResponseHelper.created(c, data)
     } catch (err) {
-      return ResponseHelper.badRequest(c, err instanceof Error ? err.message : 'Error')
+      const message = err instanceof Error ? err.message : 'Error'
+      if (message.includes('Stock insuficiente')) return ResponseHelper.unprocessableEntity(c, message)
+      return ResponseHelper.badRequest(c, message)
     }
   })
 
