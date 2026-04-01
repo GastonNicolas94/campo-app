@@ -68,4 +68,29 @@ describe('CampaignsService', () => {
       campaignsService.close(campaign.id, tenantId, { yieldAmount: 40, yieldUnit: 'qq_ha' })
     ).rejects.toThrow('ya está cerrada')
   })
+
+  it('no permite crear dos campañas activas del mismo cultivo en el mismo lote', async () => {
+    await campaignsService.create(lotId, tenantId, {
+      crop: 'Soja',
+      sowingDate: '2024-10-01',
+    })
+    await expect(
+      campaignsService.create(lotId, tenantId, {
+        crop: 'Soja',
+        sowingDate: '2024-11-01',
+      })
+    ).rejects.toThrow('Ya existe una campaña activa para este cultivo en este lote')
+  })
+
+  it('permite crear campañas activas de diferentes cultivos en el mismo lote', async () => {
+    await campaignsService.create(lotId, tenantId, {
+      crop: 'Soja',
+      sowingDate: '2024-10-01',
+    })
+    const second = await campaignsService.create(lotId, tenantId, {
+      crop: 'Maíz',
+      sowingDate: '2024-10-01',
+    })
+    expect(second.crop).toBe('Maíz')
+  })
 })

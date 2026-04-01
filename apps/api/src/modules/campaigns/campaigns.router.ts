@@ -32,7 +32,9 @@ export function createCampaignsRouter() {
       const data = await service.create(c.req.param('lotId'), tenantId, input)
       return c.json({ data }, 201)
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Error' }, 400)
+      const message = err instanceof Error ? err.message : 'Error'
+      const status = message.includes('Ya existe') ? 409 : 400
+      return c.json({ error: message }, status as 409 | 400)
     }
   })
 
