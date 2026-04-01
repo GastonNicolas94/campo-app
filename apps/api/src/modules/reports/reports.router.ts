@@ -5,7 +5,7 @@ import { ReportsService } from './reports.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'
 import { db } from '../../shared/db'
 
-const STOCK_CATEGORIES = ['agroquimico', 'semilla', 'combustible', 'fertilizante', 'repuesto', 'outro'] as const
+const STOCK_CATEGORIES = ['agroquimico', 'semilla', 'combustible', 'fertilizante', 'repuesto', 'otro'] as const
 
 const reportFiltersSchema = z.object({
   dateFrom: z.string().date().optional(),
