@@ -33,7 +33,9 @@ export function createCampaignsRouter() {
       const data = await service.create(c.req.param('lotId'), tenantId, input)
       return ResponseHelper.created(c, data)
     } catch (err) {
-      return ResponseHelper.badRequest(c, err instanceof Error ? err.message : 'Error')
+      const message = err instanceof Error ? err.message : 'Error'
+      if (message.includes('Ya existe')) return ResponseHelper.conflict(c, message)
+      return ResponseHelper.badRequest(c, message)
     }
   })
 

@@ -47,6 +47,14 @@ export class ResponseHelper {
     return c.json({ error: message }, 400)
   }
 
+  static conflict(c: Context, message: string) {
+    return c.json({ error: message }, 409)
+  }
+
+  static unprocessableEntity(c: Context, message: string) {
+    return c.json({ error: message }, 422)
+  }
+
   /**
    * Respuesta de no autorizado (401)
    * @param c Hono context

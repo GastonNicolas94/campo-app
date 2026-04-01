@@ -23,6 +23,8 @@ export class CampaignsService {
   async create(lotId: string, tenantId: string, input: CreateCampaignInput) {
     const lot = await this.lotsRepo.findByIdAndTenant(lotId, tenantId)
     if (!lot) throw new Error('Lote no encontrado')
+    const existing = await this.repo.findActiveByCropAndLot(lotId, input.crop)
+    if (existing) throw new Error('Ya existe una campaña activa para este cultivo en este lote')
     return this.repo.create(lotId, input)
   }
 
