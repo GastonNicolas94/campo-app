@@ -5,6 +5,7 @@ import { StockRepository } from './stock.repository'
 import { StockService } from './stock.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'
 import { db } from '../../shared/db'
+import { ResponseHelper } from '../../shared/response'
 
 export function createStockRouter() {
   const router = new Hono()
@@ -19,7 +20,7 @@ export function createStockRouter() {
     const data = fieldId
       ? await service.listByField(fieldId, tenantId)
       : await service.listByTenant(tenantId)
-    return c.json({ data })
+    return ResponseHelper.success(c, data)
   })
 
   // POST /stock/items
@@ -27,9 +28,9 @@ export function createStockRouter() {
     const input = c.req.valid('json')
     try {
       const data = await service.create(input)
-      return c.json({ data }, 201)
+      return ResponseHelper.created(c, data)
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Error' }, 400)
+      return ResponseHelper.badRequest(c, err instanceof Error ? err.message : 'Error')
     }
   })
 
@@ -38,9 +39,9 @@ export function createStockRouter() {
     const { tenantId } = c.get('user')
     try {
       const data = await service.getById(c.req.param('id'), tenantId)
-      return c.json({ data })
+      return ResponseHelper.success(c, data)
     } catch {
-      return c.json({ error: 'Item no encontrado' }, 404)
+      return ResponseHelper.notFound(c, 'Item no encontrado')
     }
   })
 
@@ -50,9 +51,9 @@ export function createStockRouter() {
     const input = c.req.valid('json')
     try {
       const data = await service.update(c.req.param('id'), tenantId, input)
-      return c.json({ data })
+      return ResponseHelper.success(c, data)
     } catch {
-      return c.json({ error: 'Item no encontrado' }, 404)
+      return ResponseHelper.notFound(c, 'Item no encontrado')
     }
   })
 
@@ -61,9 +62,9 @@ export function createStockRouter() {
     const { tenantId } = c.get('user')
     try {
       await service.delete(c.req.param('id'), tenantId)
-      return c.json({ ok: true })
+      return ResponseHelper.deleted(c)
     } catch {
-      return c.json({ error: 'Item no encontrado' }, 404)
+      return ResponseHelper.notFound(c, 'Item no encontrado')
     }
   })
 
@@ -73,9 +74,9 @@ export function createStockRouter() {
     const input = c.req.valid('json')
     try {
       const data = await service.addMovement(c.req.param('id'), tenantId, input, userId)
-      return c.json({ data }, 201)
+      return ResponseHelper.created(c, data)
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Error' }, 400)
+      return ResponseHelper.badRequest(c, err instanceof Error ? err.message : 'Error')
     }
   })
 
@@ -84,9 +85,9 @@ export function createStockRouter() {
     const { tenantId } = c.get('user')
     try {
       const data = await service.getMovements(c.req.param('id'), tenantId)
-      return c.json({ data })
+      return ResponseHelper.success(c, data)
     } catch {
-      return c.json({ error: 'Item no encontrado' }, 404)
+      return ResponseHelper.notFound(c, 'Item no encontrado')
     }
   })
 
@@ -94,7 +95,7 @@ export function createStockRouter() {
   router.get('/alerts', async (c) => {
     const { tenantId } = c.get('user')
     const data = await service.getAlerts(tenantId)
-    return c.json({ data })
+    return ResponseHelper.success(c, data)
   })
 
   return router

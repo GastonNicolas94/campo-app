@@ -10,6 +10,7 @@ import { createStockRouter } from './modules/stock/stock.router'
 import { createReportsRouter } from './modules/reports/reports.router'
 import { AuthRepository } from './modules/auth/auth.repository'
 import { verifyAuth } from './shared/middleware/auth.middleware'
+import { ResponseHelper } from './shared/response'
 import { db } from './shared/db'
 
 export function createApp() {
@@ -21,16 +22,16 @@ export function createApp() {
     credentials: true,
   }))
 
-  app.get('/health', (c) => c.json({ ok: true }))
+  app.get('/health', (c) => ResponseHelper.success(c, { ok: true }))
   app.route('/auth', createAuthRouter())
 
+  const authRepo = new AuthRepository(db)
   app.get('/me', verifyAuth, async (c) => {
-    const repo = new AuthRepository(db)
     const { sub: userId } = c.get('user')
-    const user = await repo.findById(userId)
-    if (!user) return c.json({ error: 'Usuario no encontrado' }, 404)
+    const user = await authRepo.findById(userId)
+    if (!user) return ResponseHelper.notFound(c, 'Usuario no encontrado')
     const { passwordHash: _omit, ...safeUser } = user
-    return c.json({ data: safeUser })
+    return ResponseHelper.success(c, safeUser)
   })
 
   app.route('/fields', createFieldsRouter())

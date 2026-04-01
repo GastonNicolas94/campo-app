@@ -5,6 +5,7 @@ import { ActivitiesRepository } from './activities.repository'
 import { ActivitiesService } from './activities.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'
 import { db } from '../../shared/db'
+import { ResponseHelper } from '../../shared/response'
 
 export function createActivitiesRouter() {
   const router = new Hono()
@@ -20,7 +21,7 @@ export function createActivitiesRouter() {
       assignedTo: assignedTo === 'null' ? null : assignedTo,
       status,
     })
-    return c.json({ data })
+    return ResponseHelper.success(c, data)
   })
 
   router.post('/', zValidator('json', createActivitySchema), async (c) => {
@@ -28,9 +29,9 @@ export function createActivitiesRouter() {
     const input = c.req.valid('json')
     try {
       const data = await service.create(input, userId)
-      return c.json({ data }, 201)
+      return ResponseHelper.created(c, data)
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Error' }, 400)
+      return ResponseHelper.badRequest(c, err instanceof Error ? err.message : 'Error')
     }
   })
 
@@ -38,9 +39,9 @@ export function createActivitiesRouter() {
     const { tenantId } = c.get('user')
     try {
       const data = await service.getById(c.req.param('id'), tenantId)
-      return c.json({ data })
+      return ResponseHelper.success(c, data)
     } catch {
-      return c.json({ error: 'Actividad no encontrada' }, 404)
+      return ResponseHelper.notFound(c, 'Actividad no encontrada')
     }
   })
 
@@ -49,9 +50,9 @@ export function createActivitiesRouter() {
     const input = c.req.valid('json')
     try {
       const data = await service.update(c.req.param('id'), tenantId, input)
-      return c.json({ data })
+      return ResponseHelper.success(c, data)
     } catch {
-      return c.json({ error: 'Actividad no encontrada' }, 404)
+      return ResponseHelper.notFound(c, 'Actividad no encontrada')
     }
   })
 
@@ -60,9 +61,9 @@ export function createActivitiesRouter() {
     const input = c.req.valid('json')
     try {
       const data = await service.patchStatus(c.req.param('id'), tenantId, input)
-      return c.json({ data })
+      return ResponseHelper.success(c, data)
     } catch {
-      return c.json({ error: 'Actividad no encontrada' }, 404)
+      return ResponseHelper.notFound(c, 'Actividad no encontrada')
     }
   })
 
@@ -70,9 +71,9 @@ export function createActivitiesRouter() {
     const { tenantId } = c.get('user')
     try {
       await service.delete(c.req.param('id'), tenantId)
-      return c.json({ ok: true })
+      return ResponseHelper.deleted(c)
     } catch {
-      return c.json({ error: 'Actividad no encontrada' }, 404)
+      return ResponseHelper.notFound(c, 'Actividad no encontrada')
     }
   })
 

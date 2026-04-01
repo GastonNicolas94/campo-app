@@ -6,6 +6,7 @@ import { LotsService } from './lots.service'
 import { FieldsRepository } from '../fields/fields.repository'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'
 import { db } from '../../shared/db'
+import { ResponseHelper } from '../../shared/response'
 
 export function createLotsRouter() {
   const router = new Hono()
@@ -19,9 +20,9 @@ export function createLotsRouter() {
     const { tenantId } = c.get('user')
     try {
       const data = await service.getByField(c.req.param('fieldId'), tenantId)
-      return c.json({ data })
+      return ResponseHelper.success(c, data)
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Error' }, 404)
+      return ResponseHelper.notFound(c, err instanceof Error ? err.message : 'Error')
     }
   })
 
@@ -30,9 +31,9 @@ export function createLotsRouter() {
     const input = c.req.valid('json')
     try {
       const data = await service.create(c.req.param('fieldId'), tenantId, input)
-      return c.json({ data }, 201)
+      return ResponseHelper.created(c, data)
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Error' }, 400)
+      return ResponseHelper.badRequest(c, err instanceof Error ? err.message : 'Error')
     }
   })
 
@@ -40,9 +41,9 @@ export function createLotsRouter() {
     const { tenantId } = c.get('user')
     try {
       const data = await service.getById(c.req.param('id'), tenantId)
-      return c.json({ data })
+      return ResponseHelper.success(c, data)
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Error' }, 404)
+      return ResponseHelper.notFound(c, err instanceof Error ? err.message : 'Error')
     }
   })
 
@@ -51,9 +52,9 @@ export function createLotsRouter() {
     const input = c.req.valid('json')
     try {
       const data = await service.update(c.req.param('id'), tenantId, input)
-      return c.json({ data })
+      return ResponseHelper.success(c, data)
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Error' }, 404)
+      return ResponseHelper.notFound(c, err instanceof Error ? err.message : 'Error')
     }
   })
 
@@ -61,9 +62,9 @@ export function createLotsRouter() {
     const { tenantId } = c.get('user')
     try {
       await service.delete(c.req.param('id'), tenantId)
-      return c.json({ data: { ok: true } })
+      return ResponseHelper.deleted(c)
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Error' }, 404)
+      return ResponseHelper.notFound(c, err instanceof Error ? err.message : 'Error')
     }
   })
 
