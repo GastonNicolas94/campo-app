@@ -4,6 +4,7 @@ import { ReportsRepository } from './reports.repository'
 import { ReportsService } from './reports.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'
 import { db } from '../../shared/db'
+import { ResponseHelper } from '../../shared/response'
 
 const STOCK_CATEGORIES = ['agroquimico', 'semilla', 'combustible', 'fertilizante', 'repuesto', 'outro'] as const
 
@@ -27,13 +28,13 @@ export function createReportsRouter() {
       const { tenantId } = c.get('user')
       const parsed = reportFiltersSchema.safeParse(c.req.query())
       if (!parsed.success) {
-        return c.json({ error: 'Parámetros inválidos' }, 400)
+        return ResponseHelper.badRequest(c, 'Parámetros inválidos')
       }
       const filters = parsed.data
       const data = await service.getSummary(tenantId, filters)
-      return c.json({ data })
+      return ResponseHelper.success(c, data)
     } catch (err) {
-      return c.json({ error: 'Error al obtener resumen' }, 500)
+      return ResponseHelper.serverError(c, 'Error al obtener resumen')
     }
   })
 
@@ -45,21 +46,21 @@ export function createReportsRouter() {
 
       const parsed = reportFiltersSchema.safeParse(rawFilters)
       if (!parsed.success) {
-        return c.json({ error: 'Parámetros inválidos' }, 400)
+        return ResponseHelper.badRequest(c, 'Parámetros inválidos')
       }
       const filters = parsed.data
 
       const moduleList = modules.split(',').map(m => m.trim()).filter(m => VALID_MODULES.includes(m))
 
       if (moduleList.length === 0) {
-        return c.json({ error: 'Módulos inválidos' }, 400)
+        return ResponseHelper.badRequest(c, 'Módulos inválidos')
       }
 
       const date = new Date().toISOString().split('T')[0]
 
       if (format === 'pdf') {
         const buffer = await service.generatePdf(tenantId, filters, moduleList)
-        return new Response(buffer, {
+        return new Response(new Uint8Array(buffer), {
           status: 200,
           headers: {
             'Content-Type': 'application/pdf',
@@ -69,7 +70,7 @@ export function createReportsRouter() {
       }
 
       const buffer = await service.generateExcel(tenantId, filters, moduleList)
-      return new Response(buffer, {
+      return new Response(new Uint8Array(buffer), {
         status: 200,
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -77,7 +78,7 @@ export function createReportsRouter() {
         },
       })
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Error al generar reporte' }, 500)
+      return ResponseHelper.serverError(c, err instanceof Error ? err.message : 'Error al generar reporte')
     }
   })
 
