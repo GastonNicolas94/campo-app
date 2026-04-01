@@ -9,13 +9,13 @@ export default function CampaignsPage() {
   useEffect(() => {
     async function load() {
       try {
-        const fields = await api.fields.list()
-        const allLots = await Promise.all(fields.map(f => api.fields.lots(f.id)))
-        const lots = allLots.flat()
+        const fieldsResult = await api.fields.list()
+        const allLots = await Promise.all(fieldsResult.data.map(f => api.fields.lots(f.id)))
+        const lots = allLots.flatMap(r => r.data)
         const allCampaigns = await Promise.all(
           lots.map(async (l) => {
-            const cs = await api.lots.campaigns(l.id)
-            return cs.map(c => ({ ...c, lotName: l.name }))
+            const result = await api.lots.campaigns(l.id)
+            return result.data.map(c => ({ ...c, lotName: l.name }))
           })
         )
         setCampaigns(allCampaigns.flat())

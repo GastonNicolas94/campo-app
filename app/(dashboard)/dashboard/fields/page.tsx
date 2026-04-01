@@ -1,12 +1,16 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { api, type Field } from '@/lib/api'
+import { Pagination } from '@/components/ui/Pagination'
 import Link from 'next/link'
 
 const inputClass = "w-full bg-surface border border-rim rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-subtle focus:outline-none focus:border-brand transition-colors"
+const PAGE_SIZE = 20
 
 export default function FieldsPage() {
   const [fields, setFields] = useState<Field[]>([])
+  const [page, setPage] = useState(1)
+  const [meta, setMeta] = useState<{ total: number; totalPages: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
@@ -16,7 +20,9 @@ export default function FieldsPage() {
 
   async function load() {
     try {
-      setFields(await api.fields.list())
+      const result = await api.fields.list({ page, pageSize: PAGE_SIZE })
+      setFields(result.data)
+      setMeta({ total: result.meta.total, totalPages: result.meta.totalPages })
     } catch {
       setError('No se pudieron cargar los establecimientos')
     } finally {
@@ -24,7 +30,7 @@ export default function FieldsPage() {
     }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [page])
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -81,19 +87,22 @@ export default function FieldsPage() {
       {fields.length === 0 ? (
         <p className="text-muted text-center mt-12">No hay establecimientos. Creá uno.</p>
       ) : (
-        <ul className="space-y-2">
-          {fields.map(f => (
-            <li key={f.id}>
-              <Link href={`/dashboard/fields/${f.id}`}
-                className="block bg-card border border-rim hover:border-brand/30 hover:shadow-[0_4px_16px_rgba(14,98,81,0.08)] rounded-2xl p-4 transition-all"
-              >
-                <p className="font-semibold text-ink">{f.name}</p>
-                {f.location && <p className="text-sm text-muted mt-0.5">{f.location}</p>}
-                {f.totalHectares && <p className="text-sm text-subtle mt-0.5">{f.totalHectares} ha</p>}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="space-y-2">
+            {fields.map(f => (
+              <li key={f.id}>
+                <Link href={`/dashboard/fields/${f.id}`}
+                  className="block bg-card border border-rim hover:border-brand/30 hover:shadow-[0_4px_16px_rgba(14,98,81,0.08)] rounded-2xl p-4 transition-all"
+                >
+                  <p className="font-semibold text-ink">{f.name}</p>
+                  {f.location && <p className="text-sm text-muted mt-0.5">{f.location}</p>}
+                  {f.totalHectares && <p className="text-sm text-subtle mt-0.5">{f.totalHectares} ha</p>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {meta && <Pagination page={page} totalPages={meta.totalPages} total={meta.total} pageSize={PAGE_SIZE} onPageChange={setPage} />}
+        </>
       )}
     </div>
   )

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { api, type Activity, type Lot } from '@/lib/api'
+import { Pagination } from '@/components/ui/Pagination'
 
 const STATUS_LABELS: Record<string, string> = { pending: 'Pendiente', done: 'Completada', skipped: 'Omitida' }
 const STATUS_COLORS: Record<string, string> = {
@@ -11,12 +12,15 @@ const STATUS_COLORS: Record<string, string> = {
 
 const inputClass = "bg-white border border-rim rounded-xl px-3 py-2 text-sm text-ink focus:outline-none focus:border-brand transition-colors"
 const formInputClass = "w-full bg-surface border border-rim rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-subtle focus:outline-none focus:border-brand transition-colors"
+const PAGE_SIZE = 20
 
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState<Activity[]>([])
   const [lots, setLots] = useState<Lot[]>([])
   const [filterStatus, setFilterStatus] = useState('')
   const [filterLot, setFilterLot] = useState('')
+  const [page, setPage] = useState(1)
+  const [meta, setMeta] = useState<{ total: number; totalPages: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [formTitle, setFormTitle] = useState('')
@@ -29,14 +33,15 @@ export default function ActivitiesPage() {
 
   async function load() {
     try {
-      const params: Record<string, string> = {}
+      const params: Record<string, string | number> = { page, pageSize: PAGE_SIZE }
       if (filterStatus) params.status = filterStatus
       if (filterLot) params.lotId = filterLot
-      const [acts, fields] = await Promise.all([api.activities.list(params), api.fields.list()])
-      setActivities(acts)
-      if (fields.length > 0) {
-        const allLots = await Promise.all(fields.map(f => api.fields.lots(f.id)))
-        setLots(allLots.flat())
+      const [result, fields] = await Promise.all([api.activities.list(params), api.fields.list()])
+      setActivities(result.data)
+      setMeta({ total: result.meta.total, totalPages: result.meta.totalPages })
+      if (fields.data.length > 0) {
+        const allLots = await Promise.all(fields.data.map(f => api.fields.lots(f.id)))
+        setLots(allLots.flatMap(r => r.data))
       }
     } catch {
       setError('Error al cargar')
@@ -45,7 +50,8 @@ export default function ActivitiesPage() {
     }
   }
 
-  useEffect(() => { load() }, [filterStatus, filterLot])
+  useEffect(() => { setPage(1) }, [filterStatus, filterLot])
+  useEffect(() => { load() }, [filterStatus, filterLot, page])
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -154,36 +160,39 @@ export default function ActivitiesPage() {
       {activities.length === 0 ? (
         <p className="text-subtle text-center mt-12">No hay actividades</p>
       ) : (
-        <ul className="space-y-2">
-          {activities.map(act => (
-            <li key={act.id} className="bg-card border border-rim rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-ink truncate">{act.title}</p>
-                  {act.description && <p className="text-sm text-muted mt-0.5 truncate">{act.description}</p>}
-                  {act.dueDate && <p className="text-xs text-subtle mt-1">Vence: {act.dueDate}</p>}
+        <>
+          <ul className="space-y-2">
+            {activities.map(act => (
+              <li key={act.id} className="bg-card border border-rim rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-ink truncate">{act.title}</p>
+                    {act.description && <p className="text-sm text-muted mt-0.5 truncate">{act.description}</p>}
+                    {act.dueDate && <p className="text-xs text-subtle mt-1">Vence: {act.dueDate}</p>}
+                  </div>
+                  <span className={`shrink-0 text-xs px-2.5 py-1 rounded-lg font-medium ${STATUS_COLORS[act.status]}`}>
+                    {STATUS_LABELS[act.status]}
+                  </span>
                 </div>
-                <span className={`shrink-0 text-xs px-2.5 py-1 rounded-lg font-medium ${STATUS_COLORS[act.status]}`}>
-                  {STATUS_LABELS[act.status]}
-                </span>
-              </div>
-              {act.status === 'pending' && (
-                <div className="flex gap-2 mt-3">
-                  <button onClick={() => handlePatchStatus(act.id, 'done')}
-                    className="text-xs bg-brand-light hover:bg-brand/20 text-brand px-3 py-1.5 rounded-lg transition-colors font-medium"
-                  >
-                    Marcar hecha
-                  </button>
-                  <button onClick={() => handlePatchStatus(act.id, 'skipped')}
-                    className="text-xs bg-rim-subtle hover:bg-rim text-muted px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    Omitir
-                  </button>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+                {act.status === 'pending' && (
+                  <div className="flex gap-2 mt-3">
+                    <button onClick={() => handlePatchStatus(act.id, 'done')}
+                      className="text-xs bg-brand-light hover:bg-brand/20 text-brand px-3 py-1.5 rounded-lg transition-colors font-medium"
+                    >
+                      Marcar hecha
+                    </button>
+                    <button onClick={() => handlePatchStatus(act.id, 'skipped')}
+                      className="text-xs bg-rim-subtle hover:bg-rim text-muted px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      Omitir
+                    </button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+          {meta && <Pagination page={page} totalPages={meta.totalPages} total={meta.total} pageSize={PAGE_SIZE} onPageChange={setPage} />}
+        </>
       )}
     </div>
   )

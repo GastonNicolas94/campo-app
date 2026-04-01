@@ -62,6 +62,16 @@ export interface Activity { id: string; title: string; description?: string; sta
 export interface StockItem { id: string; fieldId: string; name: string; category: string; unit: string; currentQuantity: string; alertThreshold?: string; createdAt: string }
 export interface StockMovement { id: string; itemId: string; type: 'in' | 'out'; quantity: string; date: string; reason?: string; createdAt: string }
 
+export interface PaginatedResponse<T> {
+  data: T[]
+  meta: {
+    total: number
+    page: number
+    pageSize: number
+    totalPages: number
+  }
+}
+
 export interface ReportSummary {
   kpis: {
     totalFields: number
@@ -85,14 +95,21 @@ export const api = {
     me: () => request<MeResult>('/me'),
   },
   fields: {
-    list: () => request<Field[]>('/fields'),
+    list: (params?: { page?: number; pageSize?: number }) => {
+      const qs = params ? '?' + new URLSearchParams(Object.entries({ page: String(params.page ?? 1), pageSize: String(params.pageSize ?? 20) }).filter(([,v]) => v !== undefined) as string[][]).toString() : ''
+      return request<PaginatedResponse<Field>>(`/fields${qs}`)
+    },
     getById: (id: string) => request<Field>(`/fields/${id}`),
     create: (body: { name: string; location?: string; totalHectares?: string }) =>
       request<Field>('/fields', { method: 'POST', body: JSON.stringify(body) }),
     update: (id: string, body: Partial<{ name: string; location: string; totalHectares: string }>) =>
       request<Field>(`/fields/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     delete: (id: string) => request<void>(`/fields/${id}`, { method: 'DELETE' }),
-    lots: (fieldId: string) => request<Lot[]>(`/fields/${fieldId}/lots`),
+    lots: (fieldId: string, params?: { page?: number; pageSize?: number }) => {
+      const { page = 1, pageSize = 20 } = params ?? {}
+      const qs = `?page=${page}&pageSize=${pageSize}`
+      return request<PaginatedResponse<Lot>>(`/fields/${fieldId}/lots${qs}`)
+    },
     createLot: (fieldId: string, body: { name: string; hectares?: string }) =>
       request<Lot>(`/fields/${fieldId}/lots`, { method: 'POST', body: JSON.stringify({ ...body, hectares: body.hectares ? Number(body.hectares) : undefined }) }),
   },
@@ -101,7 +118,11 @@ export const api = {
     update: (id: string, body: Partial<{ name: string; hectares: string }>) =>
       request<Lot>(`/lots/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     delete: (id: string) => request<void>(`/lots/${id}`, { method: 'DELETE' }),
-    campaigns: (lotId: string) => request<Campaign[]>(`/lots/${lotId}/campaigns`),
+    campaigns: (lotId: string, params?: { page?: number; pageSize?: number }) => {
+      const { page = 1, pageSize = 20 } = params ?? {}
+      const qs = `?page=${page}&pageSize=${pageSize}`
+      return request<PaginatedResponse<Campaign>>(`/lots/${lotId}/campaigns${qs}`)
+    },
     createCampaign: (lotId: string, body: { crop: string; variety?: string; sowingDate: string; harvestDate?: string }) =>
       request<Campaign>(`/lots/${lotId}/campaigns`, { method: 'POST', body: JSON.stringify(body) }),
   },
@@ -113,9 +134,11 @@ export const api = {
       request<Campaign>(`/campaigns/${id}/results`, { method: 'POST', body: JSON.stringify(body) }),
   },
   activities: {
-    list: (params?: { lotId?: string; campaignId?: string; status?: string }) => {
-      const qs = params ? '?' + new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, v]) => v != null) as [string, string][])).toString() : ''
-      return request<Activity[]>(`/activities${qs}`)
+    list: (params?: { lotId?: string; campaignId?: string; status?: string; page?: number; pageSize?: number }) => {
+      const { page = 1, pageSize = 20, ...filters } = params ?? {}
+      const entries = [...Object.entries(filters).filter(([, v]) => v !== undefined), ['page', String(page)], ['pageSize', String(pageSize)]]
+      const qs = entries.length ? '?' + new URLSearchParams(entries as string[][]).toString() : ''
+      return request<PaginatedResponse<Activity>>(`/activities${qs}`)
     },
     getById: (id: string) => request<Activity>(`/activities/${id}`),
     create: (body: { title: string; description?: string; lotId?: string; campaignId?: string; dueDate?: string }) =>
@@ -127,9 +150,12 @@ export const api = {
     delete: (id: string) => request<void>(`/activities/${id}`, { method: 'DELETE' }),
   },
   stock: {
-    list: (fieldId?: string) => {
-      const qs = fieldId ? `?fieldId=${fieldId}` : ''
-      return request<StockItem[]>(`/stock/items${qs}`)
+    list: (fieldId?: string, params?: { page?: number; pageSize?: number }) => {
+      const { page = 1, pageSize = 20 } = params ?? {}
+      const entries: string[][] = [['page', String(page)], ['pageSize', String(pageSize)]]
+      if (fieldId) entries.push(['fieldId', fieldId])
+      const qs = '?' + new URLSearchParams(entries).toString()
+      return request<PaginatedResponse<StockItem>>(`/stock/items${qs}`)
     },
     getById: (id: string) => request<StockItem>(`/stock/items/${id}`),
     create: (body: { fieldId: string; name: string; category: string; unit: string; currentQuantity: number; alertThreshold?: number }) =>
