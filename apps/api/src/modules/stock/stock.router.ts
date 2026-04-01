@@ -75,7 +75,9 @@ export function createStockRouter() {
       const data = await service.addMovement(c.req.param('id'), tenantId, input, userId)
       return c.json({ data }, 201)
     } catch (err) {
-      return c.json({ error: err instanceof Error ? err.message : 'Error' }, 400)
+      const message = err instanceof Error ? err.message : 'Error'
+      const status = message.includes('Stock insuficiente') ? 422 : 400
+      return c.json({ error: message }, status as 422 | 400)
     }
   })
 
