@@ -1,5 +1,6 @@
 import { createMiddleware } from 'hono/factory'
 import { verifyToken } from '../jwt'
+import { ResponseHelper } from '../response'
 import type { JwtPayload } from '../../types'
 
 declare module 'hono' {
@@ -11,7 +12,7 @@ declare module 'hono' {
 export const verifyAuth = createMiddleware(async (c, next) => {
   const authorization = c.req.header('Authorization')
   if (!authorization?.startsWith('Bearer ')) {
-    return c.json({ error: 'No autorizado' }, 401)
+    return ResponseHelper.unauthorized(c, 'No autorizado')
   }
 
   const token = authorization.slice(7)
@@ -20,6 +21,6 @@ export const verifyAuth = createMiddleware(async (c, next) => {
     c.set('user', payload)
     await next()
   } catch {
-    return c.json({ error: 'Token inválido o expirado' }, 401)
+    return ResponseHelper.unauthorized(c, 'Token inválido o expirado')
   }
 })

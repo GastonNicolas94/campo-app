@@ -5,6 +5,7 @@ import { AuthRepository } from './auth.repository'
 import { AuthService } from './auth.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'
 import { db } from '../../shared/db'
+import { ResponseHelper } from '../../shared/response'
 
 export function createAuthRouter() {
   const router = new Hono()
@@ -15,10 +16,10 @@ export function createAuthRouter() {
     const input = c.req.valid('json')
     try {
       const result = await service.register(input)
-      return c.json({ data: result }, 201)
+      return ResponseHelper.created(c, result)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al registrar'
-      return c.json({ error: message }, 400)
+      return ResponseHelper.badRequest(c, message)
     }
   })
 
@@ -26,10 +27,10 @@ export function createAuthRouter() {
     const input = c.req.valid('json')
     try {
       const result = await service.login(input)
-      return c.json({ data: result })
+      return ResponseHelper.success(c, result)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al autenticar'
-      return c.json({ error: message }, 401)
+      return ResponseHelper.unauthorized(c, message)
     }
   })
 
@@ -37,9 +38,10 @@ export function createAuthRouter() {
     const input = c.req.valid('json')
     try {
       const result = await service.refresh(input)
-      return c.json({ data: result })
-    } catch {
-      return c.json({ error: 'Refresh token inválido' }, 401)
+      return ResponseHelper.success(c, result)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Refresh token inválido'
+      return ResponseHelper.unauthorized(c, message)
     }
   })
 
