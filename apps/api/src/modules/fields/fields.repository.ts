@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm'
+import { eq, and, count } from 'drizzle-orm'
 import { fields } from '../../db'
 import type { Db } from '../../shared/db'
 import type { CreateFieldInput, UpdateFieldInput } from '../../validators/fields'
@@ -8,6 +8,14 @@ export class FieldsRepository {
 
   async findAll(tenantId: string) {
     return this.db.select().from(fields).where(eq(fields.tenantId, tenantId))
+  }
+
+  async findByTenant(tenantId: string, limit: number, offset: number) {
+    const [rows, [{ total }]] = await Promise.all([
+      this.db.select().from(fields).where(eq(fields.tenantId, tenantId)).limit(limit).offset(offset),
+      this.db.select({ total: count() }).from(fields).where(eq(fields.tenantId, tenantId)),
+    ])
+    return { rows, total: Number(total) }
   }
 
   async findById(id: string, tenantId: string) {

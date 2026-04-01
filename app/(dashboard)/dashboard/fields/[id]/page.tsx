@@ -2,15 +2,19 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { api, type Field, type Lot } from '@/lib/api'
+import { Pagination } from '@/components/ui/Pagination'
 import Link from 'next/link'
 
 const inputClass = "w-full bg-surface border border-rim rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-subtle focus:outline-none focus:border-brand transition-colors"
+const PAGE_SIZE = 20
 
 export default function FieldDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [field, setField] = useState<Field | null>(null)
   const [lots, setLots] = useState<Lot[]>([])
+  const [page, setPage] = useState(1)
+  const [meta, setMeta] = useState<{ total: number; totalPages: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [lotName, setLotName] = useState('')
@@ -20,8 +24,10 @@ export default function FieldDetailPage() {
 
   async function load() {
     try {
-      const [f, ls] = await Promise.all([api.fields.getById(id), api.fields.lots(id)])
-      setField(f); setLots(ls)
+      const [f, result] = await Promise.all([api.fields.getById(id), api.fields.lots(id, { page, pageSize: PAGE_SIZE })])
+      setField(f)
+      setLots(result.data)
+      setMeta({ total: result.meta.total, totalPages: result.meta.totalPages })
     } catch {
       router.replace('/dashboard/fields')
     } finally {
@@ -29,7 +35,7 @@ export default function FieldDetailPage() {
     }
   }
 
-  useEffect(() => { load() }, [id])
+  useEffect(() => { load() }, [id, page])
 
   async function handleCreateLot(e: React.FormEvent) {
     e.preventDefault()
@@ -59,7 +65,7 @@ export default function FieldDetailPage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-ink">Lotes ({lots.length})</h2>
+        <h2 className="font-semibold text-ink">Lotes ({meta?.total ?? lots.length})</h2>
         <button onClick={() => setShowForm(!showForm)}
           className="bg-brand hover:bg-brand-hover text-white text-sm px-4 py-2.5 rounded-xl transition-colors font-medium"
         >
@@ -94,18 +100,21 @@ export default function FieldDetailPage() {
       {lots.length === 0 ? (
         <p className="text-subtle text-sm text-center mt-8">No hay lotes. Creá uno.</p>
       ) : (
-        <ul className="space-y-2">
-          {lots.map(lot => (
-            <li key={lot.id}>
-              <Link href={`/dashboard/lots/${lot.id}`}
-                className="block bg-card border border-rim hover:border-brand/30 hover:shadow-[0_4px_16px_rgba(14,98,81,0.08)] rounded-2xl p-4 transition-all"
-              >
-                <p className="font-semibold text-ink">{lot.name}</p>
-                {lot.hectares && <p className="text-sm text-muted mt-0.5">{lot.hectares} ha</p>}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="space-y-2">
+            {lots.map(lot => (
+              <li key={lot.id}>
+                <Link href={`/dashboard/lots/${lot.id}`}
+                  className="block bg-card border border-rim hover:border-brand/30 hover:shadow-[0_4px_16px_rgba(14,98,81,0.08)] rounded-2xl p-4 transition-all"
+                >
+                  <p className="font-semibold text-ink">{lot.name}</p>
+                  {lot.hectares && <p className="text-sm text-muted mt-0.5">{lot.hectares} ha</p>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {meta && <Pagination page={page} totalPages={meta.totalPages} total={meta.total} pageSize={PAGE_SIZE} onPageChange={setPage} />}
+        </>
       )}
     </div>
   )

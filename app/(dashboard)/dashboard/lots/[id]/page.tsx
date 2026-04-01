@@ -27,8 +27,8 @@ export default function LotDetailPage() {
 
   async function load() {
     try {
-      const [l, cs] = await Promise.all([api.lots.getById(id), api.lots.campaigns(id)])
-      setLot(l); setCampaigns(cs)
+      const [l, result] = await Promise.all([api.lots.getById(id), api.lots.campaigns(id)])
+      setLot(l); setCampaigns(result.data)
     } catch {
       router.back()
     } finally {

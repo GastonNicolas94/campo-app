@@ -35,9 +35,9 @@ export default function DashboardPage() {
 
   const load = useCallback(async (filters?: { dateFrom?: string; dateTo?: string; fieldId?: string; crop?: string }) => {
     try {
-      const [sum, fs] = await Promise.all([api.reports.summary(filters), api.fields.list()])
+      const [sum, result] = await Promise.all([api.reports.summary(filters), api.fields.list()])
       setSummary(sum)
-      setFields(fs)
+      setFields(result.data)
     } catch {
       router.replace('/login')
     } finally {

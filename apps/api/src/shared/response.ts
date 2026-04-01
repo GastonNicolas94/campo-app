@@ -72,4 +72,17 @@ export class ResponseHelper {
   static serverError(c: Context, message: string) {
     return c.json({ error: message }, 500)
   }
+
+  /**
+   * Respuesta paginada
+   * @param c Hono context
+   * @param data Datos a retornar
+   * @param meta Información de paginación
+   */
+  static paginated<T>(c: Context, data: T[], meta: { total: number; page: number; pageSize: number }) {
+    return c.json({
+      data,
+      meta: { ...meta, totalPages: Math.ceil(meta.total / meta.pageSize) },
+    })
+  }
 }

@@ -7,6 +7,7 @@ import { FieldsRepository } from '../fields/fields.repository'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'
 import { db } from '../../shared/db'
 import { ResponseHelper } from '../../shared/response'
+import { paginationSchema, paginationToOffset } from '../../shared/pagination'
 
 export function createLotsRouter() {
   const router = new Hono()
@@ -18,9 +19,13 @@ export function createLotsRouter() {
 
   router.get('/fields/:fieldId/lots', async (c) => {
     const { tenantId } = c.get('user')
+    const parsed = paginationSchema.safeParse(c.req.query())
+    if (!parsed.success) return ResponseHelper.badRequest(c, 'Parámetros de paginación inválidos')
+    const { page, pageSize } = parsed.data
+    const { limit, offset } = paginationToOffset(page, pageSize)
     try {
-      const data = await service.getByField(c.req.param('fieldId'), tenantId)
-      return ResponseHelper.success(c, data)
+      const result = await service.getByFieldPaginated(c.req.param('fieldId'), tenantId, limit, offset)
+      return ResponseHelper.paginated(c, result.rows, { total: result.total, page, pageSize })
     } catch (err) {
       return ResponseHelper.notFound(c, err instanceof Error ? err.message : 'Error')
     }

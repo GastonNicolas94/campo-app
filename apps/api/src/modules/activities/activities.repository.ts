@@ -1,4 +1,4 @@
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and, isNull, count } from 'drizzle-orm'
 import { activities, fields, lots } from '../../db'
 import type { Db } from '../../shared/db'
 import type { CreateActivityInput, UpdateActivityInput, PatchStatusInput } from '../../validators/activities'
@@ -33,6 +33,45 @@ export class ActivitiesRepository {
         )
       )
     return rows.map(r => r.activity)
+  }
+
+  async findByTenantPaginated(tenantId: string, filters: {
+    lotId?: string
+    campaignId?: string
+    assignedTo?: string | null
+    status?: string
+  }, limit: number, offset: number) {
+    const whereCondition = and(
+      eq(fields.tenantId, tenantId),
+      filters.lotId ? eq(activities.lotId, filters.lotId) : undefined,
+      filters.campaignId ? eq(activities.campaignId, filters.campaignId) : undefined,
+      filters.assignedTo === null
+        ? isNull(activities.assignedTo)
+        : filters.assignedTo
+        ? eq(activities.assignedTo, filters.assignedTo)
+        : undefined,
+      filters.status
+        ? eq(activities.status, filters.status as 'pending' | 'done' | 'skipped')
+        : undefined,
+    )
+
+    const [rows, [{ total }]] = await Promise.all([
+      this.db
+        .select({ activity: activities })
+        .from(activities)
+        .innerJoin(lots, eq(activities.lotId, lots.id))
+        .innerJoin(fields, eq(lots.fieldId, fields.id))
+        .where(whereCondition)
+        .limit(limit)
+        .offset(offset),
+      this.db
+        .select({ total: count() })
+        .from(activities)
+        .innerJoin(lots, eq(activities.lotId, lots.id))
+        .innerJoin(fields, eq(lots.fieldId, fields.id))
+        .where(whereCondition),
+    ])
+    return { rows: rows.map(r => r.activity), total: Number(total) }
   }
 
   async findByIdAndTenant(id: string, tenantId: string) {

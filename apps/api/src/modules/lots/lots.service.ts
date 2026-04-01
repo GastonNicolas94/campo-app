@@ -14,6 +14,12 @@ export class LotsService {
     return this.repo.findByField(fieldId)
   }
 
+  async getByFieldPaginated(fieldId: string, tenantId: string, limit: number, offset: number) {
+    const field = await this.fieldsRepo.findById(fieldId, tenantId)
+    if (!field) throw new Error('Establecimiento no encontrado')
+    return this.repo.findByFieldPaginated(fieldId, limit, offset)
+  }
+
   async getById(id: string, tenantId: string) {
     const lot = await this.repo.findByIdAndTenant(id, tenantId)
     if (!lot) throw new Error('Lote no encontrado')

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { api, type StockItem, type Field } from '@/lib/api'
+import { Pagination } from '@/components/ui/Pagination'
 
 const CATEGORIES: Record<string, string> = {
   agroquimico: 'Agroquímico', semilla: 'Semilla', combustible: 'Combustible',
@@ -8,11 +9,14 @@ const CATEGORIES: Record<string, string> = {
 }
 
 const inputClass = "w-full bg-surface border border-rim rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-subtle focus:outline-none focus:border-brand transition-colors"
+const PAGE_SIZE = 20
 
 export default function StockPage() {
   const [items, setItems] = useState<StockItem[]>([])
   const [fields, setFields] = useState<Field[]>([])
   const [alerts, setAlerts] = useState<Set<string>>(new Set())
+  const [page, setPage] = useState(1)
+  const [meta, setMeta] = useState<{ total: number; totalPages: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [movementItem, setMovementItem] = useState<StockItem | null>(null)
@@ -36,17 +40,18 @@ export default function StockPage() {
 
   async function load() {
     try {
-      const [its, als, fs] = await Promise.all([api.stock.list(), api.stock.alerts(), api.fields.list()])
-      setItems(its)
+      const [result, als, fs] = await Promise.all([api.stock.list(undefined, { page, pageSize: PAGE_SIZE }), api.stock.alerts(), api.fields.list()])
+      setItems(result.data)
+      setMeta({ total: result.meta.total, totalPages: result.meta.totalPages })
       setAlerts(new Set(als.map(a => a.id)))
-      setFields(fs)
-      if (fs.length > 0 && !fFieldId) setFFieldId(fs[0].id)
+      setFields(fs.data)
+      if (fs.data.length > 0 && !fFieldId) setFFieldId(fs.data[0].id)
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [page])
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -211,37 +216,40 @@ export default function StockPage() {
       {items.length === 0 ? (
         <p className="text-subtle text-center mt-12">No hay items de stock.</p>
       ) : (
-        <ul className="space-y-2">
-          {items.map(item => (
-            <li key={item.id}
-              className={`bg-card border rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.03)] ${alerts.has(item.id) ? 'border-danger/30' : 'border-rim'}`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-ink">{item.name}</p>
-                    {alerts.has(item.id) && (
-                      <span className="text-xs bg-danger-light text-danger px-2 py-0.5 rounded-lg font-medium">Stock bajo</span>
-                    )}
+        <>
+          <ul className="space-y-2">
+            {items.map(item => (
+              <li key={item.id}
+                className={`bg-card border rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.03)] ${alerts.has(item.id) ? 'border-danger/30' : 'border-rim'}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-ink">{item.name}</p>
+                      {alerts.has(item.id) && (
+                        <span className="text-xs bg-danger-light text-danger px-2 py-0.5 rounded-lg font-medium">Stock bajo</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted mt-0.5">{CATEGORIES[item.category]} · {item.unit}</p>
+                    <p className="text-sm mt-1">
+                      <span className="text-ink font-semibold">{item.currentQuantity}</span>
+                      <span className="text-muted"> {item.unit}</span>
+                      {item.alertThreshold && (
+                        <span className="text-subtle text-xs ml-2">umbral: {item.alertThreshold}</span>
+                      )}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted mt-0.5">{CATEGORIES[item.category]} · {item.unit}</p>
-                  <p className="text-sm mt-1">
-                    <span className="text-ink font-semibold">{item.currentQuantity}</span>
-                    <span className="text-muted"> {item.unit}</span>
-                    {item.alertThreshold && (
-                      <span className="text-subtle text-xs ml-2">umbral: {item.alertThreshold}</span>
-                    )}
-                  </p>
+                  <button onClick={() => { setMovementItem(item); setError(null); setSuccessMsg(null) }}
+                    className="shrink-0 text-xs bg-rim-subtle hover:bg-rim text-muted hover:text-ink px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    Movimiento
+                  </button>
                 </div>
-                <button onClick={() => { setMovementItem(item); setError(null); setSuccessMsg(null) }}
-                  className="shrink-0 text-xs bg-rim-subtle hover:bg-rim text-muted hover:text-ink px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  Movimiento
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+          {meta && <Pagination page={page} totalPages={meta.totalPages} total={meta.total} pageSize={PAGE_SIZE} onPageChange={setPage} />}
+        </>
       )}
     </div>
   )

@@ -10,11 +10,11 @@ export default function LotsPage() {
   useEffect(() => {
     async function load() {
       try {
-        const fields = await api.fields.list()
+        const fieldsResult = await api.fields.list()
         const allLots = await Promise.all(
-          fields.map(async (f) => {
-            const ls = await api.fields.lots(f.id)
-            return ls.map(l => ({ ...l, fieldName: f.name }))
+          fieldsResult.data.map(async (f) => {
+            const result = await api.fields.lots(f.id)
+            return result.data.map(l => ({ ...l, fieldName: f.name }))
           })
         )
         setLots(allLots.flat())

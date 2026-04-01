@@ -14,6 +14,12 @@ export class CampaignsService {
     return this.repo.findByLot(lotId)
   }
 
+  async getByLotPaginated(lotId: string, tenantId: string, limit: number, offset: number) {
+    const lot = await this.lotsRepo.findByIdAndTenant(lotId, tenantId)
+    if (!lot) throw new Error('Lote no encontrado')
+    return this.repo.findByLotPaginated(lotId, limit, offset)
+  }
+
   async getById(id: string, tenantId: string) {
     const campaign = await this.repo.findByIdAndTenant(id, tenantId)
     if (!campaign) throw new Error('Campaña no encontrada')

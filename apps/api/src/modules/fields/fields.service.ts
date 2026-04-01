@@ -8,6 +8,10 @@ export class FieldsService {
     return this.repo.findAll(tenantId)
   }
 
+  async getAllPaginated(tenantId: string, limit: number, offset: number) {
+    return this.repo.findByTenant(tenantId, limit, offset)
+  }
+
   async getById(id: string, tenantId: string) {
     const field = await this.repo.findById(id, tenantId)
     if (!field) throw new Error('Establecimiento no encontrado')

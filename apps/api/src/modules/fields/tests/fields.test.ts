@@ -55,4 +55,19 @@ describe('FieldsService', () => {
     await service.delete(created.id, tenantId)
     await expect(service.getById(created.id, tenantId)).rejects.toThrow('no encontrado')
   })
+
+  it('pagina resultados correctamente', async () => {
+    await service.create(tenantId, { name: 'Campo 1' })
+    await service.create(tenantId, { name: 'Campo 2' })
+    await service.create(tenantId, { name: 'Campo 3' })
+    await service.create(otherTenantId, { name: 'Campo Otro' })
+
+    const page1 = await service.getAllPaginated(tenantId, 2, 0)
+    expect(page1.rows).toHaveLength(2)
+    expect(page1.total).toBe(3)
+
+    const page2 = await service.getAllPaginated(tenantId, 2, 2)
+    expect(page2.rows).toHaveLength(1)
+    expect(page2.total).toBe(3)
+  })
 })

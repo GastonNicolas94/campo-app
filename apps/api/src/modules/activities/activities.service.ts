@@ -8,6 +8,10 @@ export class ActivitiesService {
     return this.repo.findByTenant(tenantId, filters)
   }
 
+  async listPaginated(tenantId: string, filters: { lotId?: string; campaignId?: string; assignedTo?: string | null; status?: string }, limit: number, offset: number) {
+    return this.repo.findByTenantPaginated(tenantId, filters, limit, offset)
+  }
+
   async getById(id: string, tenantId: string) {
     const activity = await this.repo.findByIdAndTenant(id, tenantId)
     if (!activity) throw new Error('Actividad no encontrada')

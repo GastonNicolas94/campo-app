@@ -57,4 +57,19 @@ describe('LotsService', () => {
     await lotsService.delete(lot.id, tenantId)
     await expect(lotsService.getById(lot.id, tenantId)).rejects.toThrow('no encontrado')
   })
+
+  it('pagina lotes correctamente', async () => {
+    const field = await fieldsService.create(tenantId, { name: 'El Campo' })
+    await lotsService.create(field.id, tenantId, { name: 'Lote 1' })
+    await lotsService.create(field.id, tenantId, { name: 'Lote 2' })
+    await lotsService.create(field.id, tenantId, { name: 'Lote 3' })
+
+    const page1 = await lotsService.getByFieldPaginated(field.id, tenantId, 2, 0)
+    expect(page1.rows).toHaveLength(2)
+    expect(page1.total).toBe(3)
+
+    const page2 = await lotsService.getByFieldPaginated(field.id, tenantId, 2, 2)
+    expect(page2.rows).toHaveLength(1)
+    expect(page2.total).toBe(3)
+  })
 })
