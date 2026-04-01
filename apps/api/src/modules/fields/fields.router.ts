@@ -6,6 +6,7 @@ import { FieldsService } from './fields.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'
 import { db } from '../../shared/db'
 import { ResponseHelper } from '../../shared/response'
+import { paginationSchema, paginationToOffset } from '../../shared/pagination'
 
 export function createFieldsRouter() {
   const router = new Hono()
@@ -16,8 +17,16 @@ export function createFieldsRouter() {
 
   router.get('/', async (c) => {
     const { tenantId } = c.get('user')
-    const data = await service.getAll(tenantId)
-    return ResponseHelper.success(c, data)
+    const parsed = paginationSchema.safeParse(c.req.query())
+    if (!parsed.success) return ResponseHelper.badRequest(c, 'Parámetros de paginación inválidos')
+    const { page, pageSize } = parsed.data
+    const { limit, offset } = paginationToOffset(page, pageSize)
+    try {
+      const result = await service.getAllPaginated(tenantId, limit, offset)
+      return ResponseHelper.paginated(c, result.rows, { total: result.total, page, pageSize })
+    } catch {
+      return ResponseHelper.serverError(c, 'Error al obtener establecimientos')
+    }
   })
 
   router.post('/', zValidator('json', createFieldSchema), async (c) => {

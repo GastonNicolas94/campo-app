@@ -6,6 +6,7 @@ import { StockService } from './stock.service'
 import { verifyAuth } from '../../shared/middleware/auth.middleware'
 import { db } from '../../shared/db'
 import { ResponseHelper } from '../../shared/response'
+import { paginationSchema, paginationToOffset } from '../../shared/pagination'
 
 export function createStockRouter() {
   const router = new Hono()
@@ -17,10 +18,18 @@ export function createStockRouter() {
   router.get('/items', async (c) => {
     const { tenantId } = c.get('user')
     const { fieldId } = c.req.query()
-    const data = fieldId
-      ? await service.listByField(fieldId, tenantId)
-      : await service.listByTenant(tenantId)
-    return ResponseHelper.success(c, data)
+    const parsed = paginationSchema.safeParse(c.req.query())
+    if (!parsed.success) return ResponseHelper.badRequest(c, 'Parámetros de paginación inválidos')
+    const { page, pageSize } = parsed.data
+    const { limit, offset } = paginationToOffset(page, pageSize)
+    try {
+      const result = fieldId
+        ? await service.listByFieldPaginated(fieldId, tenantId, limit, offset)
+        : await service.listByTenantPaginated(tenantId, limit, offset)
+      return ResponseHelper.paginated(c, result.rows, { total: result.total, page, pageSize })
+    } catch {
+      return ResponseHelper.serverError(c, 'Error al obtener stock')
+    }
   })
 
   // POST /stock/items
@@ -85,9 +94,13 @@ export function createStockRouter() {
   // GET /stock/items/:id/movements
   router.get('/items/:id/movements', async (c) => {
     const { tenantId } = c.get('user')
+    const parsed = paginationSchema.safeParse(c.req.query())
+    if (!parsed.success) return ResponseHelper.badRequest(c, 'Parámetros de paginación inválidos')
+    const { page, pageSize } = parsed.data
+    const { limit, offset } = paginationToOffset(page, pageSize)
     try {
-      const data = await service.getMovements(c.req.param('id'), tenantId)
-      return ResponseHelper.success(c, data)
+      const result = await service.getMovementsPaginated(c.req.param('id'), tenantId, limit, offset)
+      return ResponseHelper.paginated(c, result.rows, { total: result.total, page, pageSize })
     } catch {
       return ResponseHelper.notFound(c, 'Item no encontrado')
     }

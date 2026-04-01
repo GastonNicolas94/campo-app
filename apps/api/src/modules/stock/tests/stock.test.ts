@@ -70,4 +70,35 @@ describe('StockService', () => {
     expect(alerts).toHaveLength(1)
     expect(alerts[0].id).toBe(bajo.id)
   })
+
+  it('pagina items correctamente', async () => {
+    const { tenantA, fieldA } = await seed(db)
+    await service.create({ fieldId: fieldA.id, name: 'Item 1', category: 'otro', unit: 'u', currentQuantity: 10 })
+    await service.create({ fieldId: fieldA.id, name: 'Item 2', category: 'otro', unit: 'u', currentQuantity: 20 })
+    await service.create({ fieldId: fieldA.id, name: 'Item 3', category: 'otro', unit: 'u', currentQuantity: 30 })
+
+    const page1 = await service.listByTenantPaginated(tenantA.id, 2, 0)
+    expect(page1.rows).toHaveLength(2)
+    expect(page1.total).toBe(3)
+
+    const page2 = await service.listByTenantPaginated(tenantA.id, 2, 2)
+    expect(page2.rows).toHaveLength(1)
+    expect(page2.total).toBe(3)
+  })
+
+  it('pagina movimientos correctamente', async () => {
+    const { tenantA, userA, fieldA } = await seed(db)
+    const item = await service.create({ fieldId: fieldA.id, name: 'Movibles', category: 'otro', unit: 'u', currentQuantity: 1000 })
+    await service.addMovement(item.id, tenantA.id, { type: 'in', quantity: 100, date: '2026-01-01' }, userA.id)
+    await service.addMovement(item.id, tenantA.id, { type: 'in', quantity: 200, date: '2026-01-02' }, userA.id)
+    await service.addMovement(item.id, tenantA.id, { type: 'out', quantity: 50, date: '2026-01-03' }, userA.id)
+
+    const page1 = await service.getMovementsPaginated(item.id, tenantA.id, 2, 0)
+    expect(page1.rows).toHaveLength(2)
+    expect(page1.total).toBe(3)
+
+    const page2 = await service.getMovementsPaginated(item.id, tenantA.id, 2, 2)
+    expect(page2.rows).toHaveLength(1)
+    expect(page2.total).toBe(3)
+  })
 })

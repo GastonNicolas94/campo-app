@@ -93,4 +93,18 @@ describe('CampaignsService', () => {
     })
     expect(second.crop).toBe('Maíz')
   })
+
+  it('pagina campañas correctamente', async () => {
+    await campaignsService.create(lotId, tenantId, { crop: 'Soja', sowingDate: '2024-10-01' })
+    await campaignsService.create(lotId, tenantId, { crop: 'Maíz', sowingDate: '2024-11-01' })
+    await campaignsService.create(lotId, tenantId, { crop: 'Trigo', sowingDate: '2024-12-01' })
+
+    const page1 = await campaignsService.getByLotPaginated(lotId, tenantId, 2, 0)
+    expect(page1.rows).toHaveLength(2)
+    expect(page1.total).toBe(3)
+
+    const page2 = await campaignsService.getByLotPaginated(lotId, tenantId, 2, 2)
+    expect(page2.rows).toHaveLength(1)
+    expect(page2.total).toBe(3)
+  })
 })

@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm'
+import { eq, and, count } from 'drizzle-orm'
 import { stockItems, stockMovements, fields } from '../../db'
 import type { Db } from '../../shared/db'
 import type { CreateStockItemInput, UpdateStockItemInput, CreateMovementInput } from '../../validators/stock'
@@ -15,6 +15,24 @@ export class StockRepository {
     return rows.map(r => r.item)
   }
 
+  async findByTenantPaginated(tenantId: string, limit: number, offset: number) {
+    const [rows, [{ total }]] = await Promise.all([
+      this.db
+        .select({ item: stockItems })
+        .from(stockItems)
+        .innerJoin(fields, eq(stockItems.fieldId, fields.id))
+        .where(eq(fields.tenantId, tenantId))
+        .limit(limit)
+        .offset(offset),
+      this.db
+        .select({ total: count() })
+        .from(stockItems)
+        .innerJoin(fields, eq(stockItems.fieldId, fields.id))
+        .where(eq(fields.tenantId, tenantId)),
+    ])
+    return { rows: rows.map(r => r.item), total: Number(total) }
+  }
+
   async findByField(fieldId: string, tenantId: string) {
     const rows = await this.db
       .select({ item: stockItems })
@@ -22,6 +40,24 @@ export class StockRepository {
       .innerJoin(fields, eq(stockItems.fieldId, fields.id))
       .where(and(eq(stockItems.fieldId, fieldId), eq(fields.tenantId, tenantId)))
     return rows.map(r => r.item)
+  }
+
+  async findByFieldPaginated(fieldId: string, tenantId: string, limit: number, offset: number) {
+    const [rows, [{ total }]] = await Promise.all([
+      this.db
+        .select({ item: stockItems })
+        .from(stockItems)
+        .innerJoin(fields, eq(stockItems.fieldId, fields.id))
+        .where(and(eq(stockItems.fieldId, fieldId), eq(fields.tenantId, tenantId)))
+        .limit(limit)
+        .offset(offset),
+      this.db
+        .select({ total: count() })
+        .from(stockItems)
+        .innerJoin(fields, eq(stockItems.fieldId, fields.id))
+        .where(and(eq(stockItems.fieldId, fieldId), eq(fields.tenantId, tenantId))),
+    ])
+    return { rows: rows.map(r => r.item), total: Number(total) }
   }
 
   async findByIdAndTenant(id: string, tenantId: string) {
@@ -69,6 +105,14 @@ export class StockRepository {
 
   async findMovements(itemId: string) {
     return this.db.select().from(stockMovements).where(eq(stockMovements.itemId, itemId))
+  }
+
+  async findMovementsPaginated(itemId: string, limit: number, offset: number) {
+    const [rows, [{ total }]] = await Promise.all([
+      this.db.select().from(stockMovements).where(eq(stockMovements.itemId, itemId)).limit(limit).offset(offset),
+      this.db.select({ total: count() }).from(stockMovements).where(eq(stockMovements.itemId, itemId)),
+    ])
+    return { rows, total: Number(total) }
   }
 
   async updateQuantity(id: string, newQuantity: number) {

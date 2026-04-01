@@ -8,8 +8,16 @@ export class StockService {
     return this.repo.findByTenant(tenantId)
   }
 
+  async listByTenantPaginated(tenantId: string, limit: number, offset: number) {
+    return this.repo.findByTenantPaginated(tenantId, limit, offset)
+  }
+
   async listByField(fieldId: string, tenantId: string) {
     return this.repo.findByField(fieldId, tenantId)
+  }
+
+  async listByFieldPaginated(fieldId: string, tenantId: string, limit: number, offset: number) {
+    return this.repo.findByFieldPaginated(fieldId, tenantId, limit, offset)
   }
 
   async getById(id: string, tenantId: string) {
@@ -54,6 +62,11 @@ export class StockService {
   async getMovements(itemId: string, tenantId: string) {
     await this.getById(itemId, tenantId)
     return this.repo.findMovements(itemId)
+  }
+
+  async getMovementsPaginated(itemId: string, tenantId: string, limit: number, offset: number) {
+    await this.getById(itemId, tenantId)
+    return this.repo.findMovementsPaginated(itemId, limit, offset)
   }
 
   async getAlerts(tenantId: string) {

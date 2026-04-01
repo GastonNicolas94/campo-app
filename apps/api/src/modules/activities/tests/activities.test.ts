@@ -63,4 +63,19 @@ describe('ActivitiesService', () => {
     const list = await service.list(tenantA.id, {})
     expect(list).toHaveLength(0)
   })
+
+  it('pagina actividades correctamente', async () => {
+    const { tenantA, userA, lotA } = await seed(db)
+    await service.create({ title: 'Actividad 1', lotId: lotA.id }, userA.id)
+    await service.create({ title: 'Actividad 2', lotId: lotA.id }, userA.id)
+    await service.create({ title: 'Actividad 3', lotId: lotA.id }, userA.id)
+
+    const page1 = await service.listPaginated(tenantA.id, {}, 2, 0)
+    expect(page1.rows).toHaveLength(2)
+    expect(page1.total).toBe(3)
+
+    const page2 = await service.listPaginated(tenantA.id, {}, 2, 2)
+    expect(page2.rows).toHaveLength(1)
+    expect(page2.total).toBe(3)
+  })
 })

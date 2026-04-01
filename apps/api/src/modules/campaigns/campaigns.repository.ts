@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm'
+import { eq, and, count } from 'drizzle-orm'
 import { campaigns, campaignResults, lots, fields } from '../../db'
 import type { Db } from '../../shared/db'
 import type { CreateCampaignInput, UpdateCampaignInput, CampaignResultInput } from '../../validators/campaigns'
@@ -8,6 +8,14 @@ export class CampaignsRepository {
 
   async findByLot(lotId: string) {
     return this.db.select().from(campaigns).where(eq(campaigns.lotId, lotId))
+  }
+
+  async findByLotPaginated(lotId: string, limit: number, offset: number) {
+    const [rows, [{ total }]] = await Promise.all([
+      this.db.select().from(campaigns).where(eq(campaigns.lotId, lotId)).limit(limit).offset(offset),
+      this.db.select({ total: count() }).from(campaigns).where(eq(campaigns.lotId, lotId)),
+    ])
+    return { rows, total: Number(total) }
   }
 
   async findByIdAndTenant(id: string, tenantId: string) {
