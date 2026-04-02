@@ -11,6 +11,7 @@ export class ActivitiesRepository {
     campaignId?: string
     assignedTo?: string | null
     status?: string
+    type?: string
   }) {
     const rows = await this.db
       .select({ activity: activities })
@@ -30,6 +31,9 @@ export class ActivitiesRepository {
           filters.status
             ? eq(activities.status, filters.status as 'pending' | 'done' | 'skipped')
             : undefined,
+          filters.type
+            ? eq(activities.type, filters.type as 'siembra' | 'fertilizacion' | 'riego' | 'cosecha' | 'fumigacion' | 'laboreo' | 'otro')
+            : undefined,
         )
       )
     return rows.map(r => r.activity)
@@ -40,6 +44,7 @@ export class ActivitiesRepository {
     campaignId?: string
     assignedTo?: string | null
     status?: string
+    type?: string
   }, limit: number, offset: number) {
     const whereCondition = and(
       eq(fields.tenantId, tenantId),
@@ -52,6 +57,9 @@ export class ActivitiesRepository {
         : undefined,
       filters.status
         ? eq(activities.status, filters.status as 'pending' | 'done' | 'skipped')
+        : undefined,
+      filters.type
+        ? eq(activities.type, filters.type as 'siembra' | 'fertilizacion' | 'riego' | 'cosecha' | 'fumigacion' | 'laboreo' | 'otro')
         : undefined,
     )
 

@@ -58,7 +58,7 @@ interface MeResult {
 export interface Field { id: string; name: string; location?: string; totalHectares?: string; createdAt: string }
 export interface Lot { id: string; fieldId: string; name: string; hectares?: string; createdAt: string }
 export interface Campaign { id: string; lotId: string; crop: string; variety?: string; sowingDate: string; harvestDate?: string; status: 'active' | 'closed'; createdAt: string }
-export interface Activity { id: string; title: string; description?: string; status: 'pending' | 'done' | 'skipped'; dueDate?: string; lotId?: string; campaignId?: string; assignedTo?: string; completionNotes?: string; completedAt?: string; createdAt: string }
+export interface Activity { id: string; title: string; description?: string; status: 'pending' | 'done' | 'skipped'; dueDate?: string; lotId?: string; campaignId?: string; assignedTo?: string; completionNotes?: string; completedAt?: string; createdAt: string; type?: 'siembra' | 'fertilizacion' | 'riego' | 'cosecha' | 'fumigacion' | 'laboreo' | 'otro' }
 export interface StockItem { id: string; fieldId: string; name: string; category: string; unit: string; currentQuantity: string; alertThreshold?: string; createdAt: string }
 export interface StockMovement { id: string; itemId: string; type: 'in' | 'out'; quantity: string; date: string; reason?: string; createdAt: string }
 
@@ -134,14 +134,14 @@ export const api = {
       request<Campaign>(`/campaigns/${id}/results`, { method: 'POST', body: JSON.stringify(body) }),
   },
   activities: {
-    list: (params?: { lotId?: string; campaignId?: string; status?: string; page?: number; pageSize?: number }) => {
+    list: (params?: { lotId?: string; campaignId?: string; status?: string; type?: string; page?: number; pageSize?: number }) => {
       const { page = 1, pageSize = 20, ...filters } = params ?? {}
       const entries = [...Object.entries(filters).filter(([, v]) => v !== undefined), ['page', String(page)], ['pageSize', String(pageSize)]]
       const qs = entries.length ? '?' + new URLSearchParams(entries as string[][]).toString() : ''
       return request<PaginatedResponse<Activity>>(`/activities${qs}`)
     },
     getById: (id: string) => request<Activity>(`/activities/${id}`),
-    create: (body: { title: string; description?: string; lotId?: string; campaignId?: string; dueDate?: string }) =>
+    create: (body: { title: string; description?: string; lotId?: string; campaignId?: string; dueDate?: string; type?: string }) =>
       request<Activity>('/activities', { method: 'POST', body: JSON.stringify(body) }),
     update: (id: string, body: Partial<{ title: string; description: string; dueDate: string }>) =>
       request<Activity>(`/activities/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
