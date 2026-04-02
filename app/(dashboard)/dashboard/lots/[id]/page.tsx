@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { api, type Lot, type Campaign } from '@/lib/api'
+import LotMapWrapper from '@/components/maps/LotMapWrapper'
 
 const inputClass = "w-full bg-surface border border-rim rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-subtle focus:outline-none focus:border-brand transition-colors"
 
@@ -24,6 +25,10 @@ export default function LotDetailPage() {
   const [closeNotes, setCloseNotes] = useState('')
   const [closeSaving, setCloseSaving] = useState(false)
   const [closeError, setCloseError] = useState<string | null>(null)
+  const [editingGeometry, setEditingGeometry] = useState(false)
+  const [geometryInput, setGeometryInput] = useState('')
+  const [geometrySaving, setGeometrySaving] = useState(false)
+  const [geometryError, setGeometryError] = useState<string | null>(null)
 
   async function load() {
     try {
@@ -80,6 +85,21 @@ export default function LotDetailPage() {
     }
   }
 
+  async function handleSaveGeometry(e: React.FormEvent) {
+    e.preventDefault()
+    setGeometrySaving(true); setGeometryError(null)
+    try {
+      const parsed = JSON.parse(geometryInput)
+      await api.lots.updateGeometry(id, parsed)
+      setEditingGeometry(false); setGeometryInput('')
+      await load()
+    } catch (err) {
+      setGeometryError(err instanceof Error ? err.message : 'JSON inválido')
+    } finally {
+      setGeometrySaving(false)
+    }
+  }
+
   if (loading) return <p className="text-muted text-center mt-16">Cargando...</p>
   if (!lot) return null
 
@@ -92,6 +112,59 @@ export default function LotDetailPage() {
           {lot.hectares && <p className="text-sm text-muted mt-0.5">{lot.hectares} ha</p>}
         </div>
       </div>
+
+      {/* Mapa del lote */}
+      {lot.geometry ? (
+        <div className="bg-card border border-rim rounded-2xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-ink text-sm">Mapa del lote</h2>
+            <button onClick={() => { setEditingGeometry(true); setGeometryInput(JSON.stringify(lot.geometry, null, 2)) }}
+              className="text-xs text-muted hover:text-ink transition-colors"
+            >
+              Editar
+            </button>
+          </div>
+          <LotMapWrapper lots={[lot]} height="280px" />
+        </div>
+      ) : (
+        <div className="bg-card border border-rim rounded-2xl p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-subtle">Sin polígono definido</p>
+            <button onClick={() => setEditingGeometry(true)}
+              className="text-xs bg-brand-light text-brand hover:bg-brand/20 px-3 py-1.5 rounded-lg transition-colors font-medium"
+            >
+              + Definir polígono
+            </button>
+          </div>
+        </div>
+      )}
+
+      {editingGeometry && (
+        <form onSubmit={handleSaveGeometry} className="bg-card border border-rim rounded-2xl p-5 space-y-3 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+          <h2 className="text-sm font-semibold text-ink">Geometría GeoJSON (Polygon)</h2>
+          <p className="text-xs text-subtle">Pegá un GeoJSON válido de tipo Polygon. Las coordenadas deben ser [longitud, latitud].</p>
+          <textarea
+            value={geometryInput}
+            onChange={e => setGeometryInput(e.target.value)}
+            rows={8}
+            placeholder='{"type":"Polygon","coordinates":[[[lng,lat],[lng,lat],...]]}'
+            className="w-full bg-surface border border-rim rounded-xl px-3 py-2.5 text-xs text-ink font-mono focus:outline-none focus:border-brand transition-colors resize-none"
+          />
+          {geometryError && <p className="text-danger text-sm">{geometryError}</p>}
+          <div className="flex gap-2">
+            <button type="submit" disabled={geometrySaving}
+              className="bg-brand hover:bg-brand-hover disabled:opacity-50 text-white text-sm px-4 py-2.5 rounded-xl transition-colors"
+            >
+              {geometrySaving ? 'Guardando...' : 'Guardar'}
+            </button>
+            <button type="button" onClick={() => { setEditingGeometry(false); setGeometryError(null) }}
+              className="text-muted hover:text-ink text-sm px-4 py-2.5"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-ink">Campañas ({campaigns.length})</h2>
