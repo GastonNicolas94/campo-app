@@ -8,6 +8,7 @@ import { createCampaignsRouter } from './modules/campaigns/campaigns.router'
 import { createActivitiesRouter } from './modules/activities/activities.router'
 import { createStockRouter } from './modules/stock/stock.router'
 import { createReportsRouter } from './modules/reports/reports.router'
+import { createUsersRouter } from './modules/users/users.router'
 import { AuthRepository } from './modules/auth/auth.repository'
 import { verifyAuth } from './shared/middleware/auth.middleware'
 import { ResponseHelper } from './shared/response'
@@ -40,6 +41,7 @@ export function createApp() {
   app.route('/activities', createActivitiesRouter())
   app.route('/stock', createStockRouter())
   app.route('/reports', createReportsRouter())
+  app.route('/users', createUsersRouter())
 
   return app
 }

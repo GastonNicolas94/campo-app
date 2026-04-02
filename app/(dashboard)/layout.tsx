@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, MapPin, Layers, Sprout, ListChecks, Package, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, MapPin, Layers, Sprout, ListChecks, Package, LogOut, Menu, X, Users } from 'lucide-react'
 
 const navItems = [
   { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
@@ -11,16 +11,28 @@ const navItems = [
   { href: '/dashboard/campaigns', label: 'Campañas', icon: Sprout },
   { href: '/dashboard/activities', label: 'Actividades', icon: ListChecks },
   { href: '/dashboard/stock', label: 'Stock', icon: Package },
+  { href: '/dashboard/team', label: 'Equipo', icon: Users, ownerOnly: true },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken')
     if (!token) router.replace('/login')
+
+    try {
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        const user = JSON.parse(userStr)
+        setUserRole(user.role)
+      }
+    } catch {
+      // silently fail
+    }
   }, [router])
 
   useEffect(() => {
@@ -30,6 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   function logout() {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
+    localStorage.removeItem('user')
     router.replace('/login')
   }
 
@@ -49,6 +62,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {navItems.map(item => {
+          // Mostrar el item solo si no es solo para owner, o si el usuario es owner
+          if ('ownerOnly' in item && item.ownerOnly && userRole !== 'owner') {
+            return null
+          }
           const Icon = item.icon
           const active = isActive(item.href)
           return (
@@ -95,6 +112,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {menuOpen && (
           <div className="md:hidden bg-card border-b border-rim flex flex-col shadow-sm">
             {navItems.map(item => {
+              // Mostrar el item solo si no es solo para owner, o si el usuario es owner
+              if ('ownerOnly' in item && item.ownerOnly && userRole !== 'owner') {
+                return null
+              }
               const Icon = item.icon
               const active = isActive(item.href)
               return (
