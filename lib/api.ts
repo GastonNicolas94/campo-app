@@ -56,7 +56,7 @@ interface MeResult {
 }
 
 export interface Field { id: string; name: string; location?: string; totalHectares?: string; createdAt: string }
-export interface Lot { id: string; fieldId: string; name: string; hectares?: string; createdAt: string }
+export interface Lot { id: string; fieldId: string; name: string; hectares?: string; geometry?: { type: string; coordinates: number[][][] } | null; createdAt: string }
 export interface Campaign { id: string; lotId: string; crop: string; variety?: string; sowingDate: string; harvestDate?: string; status: 'active' | 'closed'; createdAt: string }
 export interface Activity { id: string; title: string; description?: string; status: 'pending' | 'done' | 'skipped'; dueDate?: string; lotId?: string; campaignId?: string; assignedTo?: string; completionNotes?: string; completedAt?: string; createdAt: string; type?: 'siembra' | 'fertilizacion' | 'riego' | 'cosecha' | 'fumigacion' | 'laboreo' | 'otro' }
 export interface StockItem { id: string; fieldId: string; name: string; category: string; unit: string; currentQuantity: string; alertThreshold?: string; createdAt: string }
@@ -118,6 +118,8 @@ export const api = {
     getById: (id: string) => request<Lot>(`/lots/${id}`),
     update: (id: string, body: Partial<{ name: string; hectares: string }>) =>
       request<Lot>(`/lots/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    updateGeometry: (id: string, geometry: { type: string; coordinates: number[][][] } | null) =>
+      request<Lot>(`/lots/${id}/geometry`, { method: 'PATCH', body: JSON.stringify({ geometry }) }),
     delete: (id: string) => request<void>(`/lots/${id}`, { method: 'DELETE' }),
     campaigns: (lotId: string, params?: { page?: number; pageSize?: number }) => {
       const { page = 1, pageSize = 20 } = params ?? {}

@@ -1,4 +1,4 @@
-import { eq, and, count } from 'drizzle-orm'
+import { eq, and, count, inArray } from 'drizzle-orm'
 import { lots, fields } from '../../db'
 import type { Db } from '../../shared/db'
 import type { CreateLotInput, UpdateLotInput } from '../../validators/lots'
@@ -40,5 +40,17 @@ export class LotsRepository {
   async delete(id: string) {
     const rows = await this.db.delete(lots).where(eq(lots.id, id)).returning()
     return rows[0] ?? null
+  }
+
+  async updateGeometry(id: string, tenantId: string, geometry: { type: string; coordinates: number[][][] } | null) {
+    const [updated] = await this.db
+      .update(lots)
+      .set({ geometry })
+      .where(and(eq(lots.id, id), inArray(lots.fieldId,
+        this.db.select({ id: fields.id }).from(fields).where(eq(fields.tenantId, tenantId))
+      )))
+      .returning()
+    if (!updated) throw new Error('Lote no encontrado')
+    return updated
   }
 }

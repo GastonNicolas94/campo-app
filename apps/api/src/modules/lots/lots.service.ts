@@ -45,4 +45,8 @@ export class LotsService {
     if (!lot) throw new Error('Lote no encontrado')
     await this.repo.delete(id)
   }
+
+  async updateGeometry(id: string, tenantId: string, geometry: { type: string; coordinates: number[][][] } | null) {
+    return this.repo.updateGeometry(id, tenantId, geometry)
+  }
 }

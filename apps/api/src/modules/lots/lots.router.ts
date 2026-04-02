@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { createLotSchema, updateLotSchema } from '../../validators/lots'
+import { createLotSchema, updateLotSchema, updateLotGeometrySchema } from '../../validators/lots'
 import { LotsRepository } from './lots.repository'
 import { LotsService } from './lots.service'
 import { FieldsRepository } from '../fields/fields.repository'
@@ -57,6 +57,17 @@ export function createLotsRouter() {
     const input = c.req.valid('json')
     try {
       const data = await service.update(c.req.param('id'), tenantId, input)
+      return ResponseHelper.success(c, data)
+    } catch (err) {
+      return ResponseHelper.notFound(c, err instanceof Error ? err.message : 'Error')
+    }
+  })
+
+  router.patch('/lots/:id/geometry', zValidator('json', updateLotGeometrySchema), async (c) => {
+    const { tenantId } = c.get('user')
+    const { geometry } = c.req.valid('json')
+    try {
+      const data = await service.updateGeometry(c.req.param('id'), tenantId, geometry)
       return ResponseHelper.success(c, data)
     } catch (err) {
       return ResponseHelper.notFound(c, err instanceof Error ? err.message : 'Error')
