@@ -17,9 +17,10 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const { accessToken, refreshToken } = await api.auth.login({ email, password })
+      const { accessToken, refreshToken, user } = await api.auth.login({ email, password })
       localStorage.setItem('accessToken', accessToken)
       localStorage.setItem('refreshToken', refreshToken)
+      localStorage.setItem('user', JSON.stringify(user))
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al iniciar sesión')
