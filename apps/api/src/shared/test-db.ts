@@ -110,6 +110,10 @@ export async function createTestDb() {
   } catch {}
 
   try {
+    await client.exec(`CREATE TYPE activity_type AS ENUM ('siembra', 'fertilizacion', 'riego', 'cosecha', 'fumigacion', 'laboreo', 'otro')`)
+  } catch {}
+
+  try {
     await client.exec(`
       CREATE TABLE activities (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -121,6 +125,7 @@ export async function createTestDb() {
         description TEXT,
         due_date DATE,
         status activity_status NOT NULL DEFAULT 'pending',
+        type activity_type,
         completion_notes TEXT,
         completed_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL

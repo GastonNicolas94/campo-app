@@ -9,6 +9,16 @@ const STATUS_COLORS: Record<string, string> = {
   done: 'bg-brand-light text-brand',
   skipped: 'bg-rim-subtle text-muted',
 }
+const ACTIVITY_TYPES = ['siembra', 'fertilizacion', 'riego', 'cosecha', 'fumigacion', 'laboreo', 'otro'] as const
+const TYPE_LABELS: Record<string, string> = {
+  siembra: 'Siembra',
+  fertilizacion: 'Fertilización',
+  riego: 'Riego',
+  cosecha: 'Cosecha',
+  fumigacion: 'Fumigación',
+  laboreo: 'Laboreo',
+  otro: 'Otro',
+}
 
 const inputClass = "bg-white border border-rim rounded-xl px-3 py-2 text-sm text-ink focus:outline-none focus:border-brand transition-colors"
 const formInputClass = "w-full bg-surface border border-rim rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-subtle focus:outline-none focus:border-brand transition-colors"
@@ -19,12 +29,14 @@ export default function ActivitiesPage() {
   const [lots, setLots] = useState<Lot[]>([])
   const [filterStatus, setFilterStatus] = useState('')
   const [filterLot, setFilterLot] = useState('')
+  const [filterType, setFilterType] = useState('')
   const [page, setPage] = useState(1)
   const [meta, setMeta] = useState<{ total: number; totalPages: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [formTitle, setFormTitle] = useState('')
   const [formDesc, setFormDesc] = useState('')
+  const [formType, setFormType] = useState('')
   const [formLotId, setFormLotId] = useState('')
   const [formDueDate, setFormDueDate] = useState('')
   const [saving, setSaving] = useState(false)
@@ -36,6 +48,7 @@ export default function ActivitiesPage() {
       const params: Record<string, string | number> = { page, pageSize: PAGE_SIZE }
       if (filterStatus) params.status = filterStatus
       if (filterLot) params.lotId = filterLot
+      if (filterType) params.type = filterType
       const [result, fields] = await Promise.all([api.activities.list(params), api.fields.list()])
       setActivities(result.data)
       setMeta({ total: result.meta.total, totalPages: result.meta.totalPages })
@@ -50,8 +63,8 @@ export default function ActivitiesPage() {
     }
   }
 
-  useEffect(() => { setPage(1) }, [filterStatus, filterLot])
-  useEffect(() => { load() }, [filterStatus, filterLot, page])
+  useEffect(() => { setPage(1) }, [filterStatus, filterLot, filterType])
+  useEffect(() => { load() }, [filterStatus, filterLot, filterType, page])
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -62,8 +75,9 @@ export default function ActivitiesPage() {
         description: formDesc || undefined,
         lotId: formLotId || undefined,
         dueDate: formDueDate || undefined,
+        type: formType || undefined,
       })
-      setFormTitle(''); setFormDesc(''); setFormLotId(''); setFormDueDate(''); setShowForm(false)
+      setFormTitle(''); setFormDesc(''); setFormType(''); setFormLotId(''); setFormDueDate(''); setShowForm(false)
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error')
@@ -115,6 +129,10 @@ export default function ActivitiesPage() {
           <option value="done">Completada</option>
           <option value="skipped">Omitida</option>
         </select>
+        <select value={filterType} onChange={e => setFilterType(e.target.value)} className={inputClass}>
+          <option value="">Todos los tipos</option>
+          {ACTIVITY_TYPES.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
+        </select>
         <select value={filterLot} onChange={e => setFilterLot(e.target.value)} className={inputClass}>
           <option value="">Todos los lotes</option>
           {lots.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
@@ -131,6 +149,10 @@ export default function ActivitiesPage() {
             placeholder="Descripción (opcional)" rows={2}
             className={`${formInputClass} resize-none`}
           />
+          <select value={formType} onChange={e => setFormType(e.target.value)} className={formInputClass}>
+            <option value="">Sin tipo</option>
+            {ACTIVITY_TYPES.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
+          </select>
           <select value={formLotId} onChange={e => setFormLotId(e.target.value)} className={formInputClass}>
             <option value="">Sin lote asignado</option>
             {lots.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
@@ -168,6 +190,7 @@ export default function ActivitiesPage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-ink truncate">{act.title}</p>
                     {act.description && <p className="text-sm text-muted mt-0.5 truncate">{act.description}</p>}
+                    {act.type && <p className="text-xs text-muted mt-0.5">{TYPE_LABELS[act.type]}</p>}
                     {act.dueDate && <p className="text-xs text-subtle mt-1">Vence: {act.dueDate}</p>}
                   </div>
                   <span className={`shrink-0 text-xs px-2.5 py-1 rounded-lg font-medium ${STATUS_COLORS[act.status]}`}>

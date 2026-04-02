@@ -4,6 +4,7 @@ import { campaigns } from './campaigns'
 import { users } from './users'
 
 export const activityStatusEnum = pgEnum('activity_status', ['pending', 'done', 'skipped'])
+export const activityTypeEnum = pgEnum('activity_type', ['siembra', 'fertilizacion', 'riego', 'cosecha', 'fumigacion', 'laboreo', 'otro'])
 
 export const activities = pgTable('activities', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -15,6 +16,7 @@ export const activities = pgTable('activities', {
   description: text('description'),
   dueDate: date('due_date'),
   status: activityStatusEnum('status').notNull().default('pending'),
+  type: activityTypeEnum('type'),
   completionNotes: text('completion_notes'),
   completedAt: timestamp('completed_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

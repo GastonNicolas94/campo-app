@@ -7,6 +7,7 @@ export const createActivitySchema = z.object({
   campaignId: z.string().uuid().optional(),
   assignedTo: z.string().uuid().optional(),
   dueDate: z.string().date().optional(),
+  type: z.enum(['siembra', 'fertilizacion', 'riego', 'cosecha', 'fumigacion', 'laboreo', 'otro']).optional(),
 })
 
 export const updateActivitySchema = createActivitySchema.partial()

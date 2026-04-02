@@ -7,6 +7,18 @@ import { verifyAuth } from '../../shared/middleware/auth.middleware'
 import { db } from '../../shared/db'
 import { ResponseHelper } from '../../shared/response'
 import { paginationSchema, paginationToOffset } from '../../shared/pagination'
+import { z } from 'zod'
+
+const ACTIVITY_TYPES = ['siembra', 'fertilizacion', 'riego', 'cosecha', 'fumigacion', 'laboreo', 'otro'] as const
+const ACTIVITY_STATUSES = ['pending', 'done', 'skipped'] as const
+
+const listQuerySchema = paginationSchema.extend({
+  lotId: z.string().uuid().optional(),
+  campaignId: z.string().uuid().optional(),
+  assignedTo: z.string().optional(),
+  status: z.enum(ACTIVITY_STATUSES).optional(),
+  type: z.enum(ACTIVITY_TYPES).optional(),
+})
 
 export function createActivitiesRouter() {
   const router = new Hono()
@@ -16,7 +28,7 @@ export function createActivitiesRouter() {
 
   router.get('/', async (c) => {
     const { tenantId } = c.get('user')
-    const { lotId, campaignId, assignedTo, status } = c.req.query()
+    const { lotId, campaignId, assignedTo, status, type } = c.req.query()
     const parsed = paginationSchema.safeParse(c.req.query())
     if (!parsed.success) return ResponseHelper.badRequest(c, 'Parámetros de paginación inválidos')
     const { page, pageSize } = parsed.data
@@ -26,6 +38,7 @@ export function createActivitiesRouter() {
         lotId, campaignId,
         assignedTo: assignedTo === 'null' ? null : assignedTo,
         status,
+        type,
       }, limit, offset)
       return ResponseHelper.paginated(c, result.rows, { total: result.total, page, pageSize })
     } catch {

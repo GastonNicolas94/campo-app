@@ -4,11 +4,11 @@ import type { CreateActivityInput, UpdateActivityInput, PatchStatusInput } from 
 export class ActivitiesService {
   constructor(private repo: ActivitiesRepository) {}
 
-  async list(tenantId: string, filters: { lotId?: string; campaignId?: string; assignedTo?: string | null; status?: string }) {
+  async list(tenantId: string, filters: { lotId?: string; campaignId?: string; assignedTo?: string | null; status?: string; type?: string }) {
     return this.repo.findByTenant(tenantId, filters)
   }
 
-  async listPaginated(tenantId: string, filters: { lotId?: string; campaignId?: string; assignedTo?: string | null; status?: string }, limit: number, offset: number) {
+  async listPaginated(tenantId: string, filters: { lotId?: string; campaignId?: string; assignedTo?: string | null; status?: string; type?: string }, limit: number, offset: number) {
     return this.repo.findByTenantPaginated(tenantId, filters, limit, offset)
   }
 

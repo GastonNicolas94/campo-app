@@ -78,4 +78,34 @@ describe('ActivitiesService', () => {
     expect(page2.rows).toHaveLength(1)
     expect(page2.total).toBe(3)
   })
+
+  it('crea actividad con type y lo persiste correctamente', async () => {
+    const { tenantA, userA, lotA } = await seed(db)
+    const act = await service.create({ title: 'Siembra', lotId: lotA.id, type: 'siembra' }, userA.id)
+    expect(act.type).toBe('siembra')
+    const fetched = await service.getById(act.id, tenantA.id)
+    expect(fetched.type).toBe('siembra')
+  })
+
+  it('crea actividad sin type y type es null', async () => {
+    const { tenantA, userA, lotA } = await seed(db)
+    const act = await service.create({ title: 'Sin tipo', lotId: lotA.id }, userA.id)
+    expect(act.type).toBeNull()
+  })
+
+  it('filtra actividades por type correctamente', async () => {
+    const { tenantA, userA, lotA } = await seed(db)
+    await service.create({ title: 'Siembra 1', lotId: lotA.id, type: 'siembra' }, userA.id)
+    await service.create({ title: 'Siembra 2', lotId: lotA.id, type: 'siembra' }, userA.id)
+    await service.create({ title: 'Riego 1', lotId: lotA.id, type: 'riego' }, userA.id)
+    await service.create({ title: 'Sin tipo', lotId: lotA.id }, userA.id)
+
+    const siembras = await service.list(tenantA.id, { type: 'siembra' })
+    expect(siembras).toHaveLength(2)
+    expect(siembras.every(a => a.type === 'siembra')).toBe(true)
+
+    const riegos = await service.list(tenantA.id, { type: 'riego' })
+    expect(riegos).toHaveLength(1)
+    expect(riegos[0].type).toBe('riego')
+  })
 })
