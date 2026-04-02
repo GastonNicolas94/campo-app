@@ -61,6 +61,7 @@ export interface Campaign { id: string; lotId: string; crop: string; variety?: s
 export interface Activity { id: string; title: string; description?: string; status: 'pending' | 'done' | 'skipped'; dueDate?: string; lotId?: string; campaignId?: string; assignedTo?: string; completionNotes?: string; completedAt?: string; createdAt: string; type?: 'siembra' | 'fertilizacion' | 'riego' | 'cosecha' | 'fumigacion' | 'laboreo' | 'otro' }
 export interface StockItem { id: string; fieldId: string; name: string; category: string; unit: string; currentQuantity: string; alertThreshold?: string; createdAt: string }
 export interface StockMovement { id: string; itemId: string; type: 'in' | 'out'; quantity: string; date: string; reason?: string; createdAt: string }
+export interface TenantUser { id: string; email: string; phone: string | null; role: 'owner' | 'manager' | 'operator' | 'accountant'; createdAt: string }
 
 export interface PaginatedResponse<T> {
   data: T[]
@@ -190,5 +191,17 @@ export const api = {
       document.body.removeChild(a)
       setTimeout(() => URL.revokeObjectURL(url), 100)
     },
+  },
+  users: {
+    list: (params?: { page?: number; pageSize?: number }) => {
+      const qs = `?page=${params?.page ?? 1}&pageSize=${params?.pageSize ?? 20}`
+      return request<PaginatedResponse<TenantUser>>(`/users${qs}`)
+    },
+    invite: (body: { email: string; password: string; phone?: string; role: 'manager' | 'operator' | 'accountant' }) =>
+      request<TenantUser>('/users/invite', { method: 'POST', body: JSON.stringify(body) }),
+    updateRole: (id: string, role: 'manager' | 'operator' | 'accountant') =>
+      request<TenantUser>(`/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
+    remove: (id: string) =>
+      request<void>(`/users/${id}`, { method: 'DELETE' }),
   },
 }
