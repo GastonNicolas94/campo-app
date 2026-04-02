@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { api, type Field, type Lot } from '@/lib/api'
 import { Pagination } from '@/components/ui/Pagination'
 import Link from 'next/link'
+import LotMapWrapper from '@/components/maps/LotMapWrapper'
 
 const inputClass = "w-full bg-surface border border-rim rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-subtle focus:outline-none focus:border-brand transition-colors"
 const PAGE_SIZE = 20
@@ -63,6 +64,14 @@ export default function FieldDetailPage() {
           {field.location && <p className="text-sm text-muted mt-0.5">{field.location}</p>}
         </div>
       </div>
+
+      {/* Mapa de lotes con geometría */}
+      {lots.some(l => l.geometry) && (
+        <div className="bg-card border border-rim rounded-2xl p-4 space-y-3">
+          <h2 className="font-semibold text-ink text-sm">Mapa del establecimiento</h2>
+          <LotMapWrapper lots={lots} height="300px" />
+        </div>
+      )}
 
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-ink">Lotes ({meta?.total ?? lots.length})</h2>
